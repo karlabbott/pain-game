@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PAIN</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #000; overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+    height: 100vh; width: 100vw;
+  }
+  canvas { image-rendering: pixelated; image-rendering: crisp-edges; display: block; }
+  #title-screen {
+    position: fixed; inset: 0; background: #000; z-index: 10;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    cursor: pointer; transition: opacity 1s ease;
+  }
+  #title-screen.hidden { opacity: 0; pointer-events: none; }
+  #title-screen h1 {
+    font-family: 'Cinzel', serif; font-size: 52px; font-weight: 700;
+    letter-spacing: 14px; color: rgba(255,255,255,0.85); text-transform: uppercase;
+  }
+  #title-screen p {
+    font-family: 'Cinzel', serif; font-size: 13px; margin-top: 24px;
+    color: rgba(255,255,255,0.7); letter-spacing: 3px;
+    animation: pulse 3s ease-in-out infinite;
+  }
+  #room-name {
+    position: fixed; top: 8px; left: 50%; transform: translateX(-50%);
+    font-family: 'Cinzel', serif; font-size: 12px; letter-spacing: 4px;
+    color: rgba(255,255,255,0.85); text-transform: uppercase; z-index: 5;
+    pointer-events: none; transition: opacity 0.6s;
+  }
+  #step-display {
+    position: fixed; bottom: 8px; right: 12px;
+    font-family: 'Cinzel', serif; font-size: 10px; letter-spacing: 3px;
+    color: rgba(160,140,110,0.25); z-index: 5; pointer-events: none;
+  }
+  @keyframes pulse { 0%,100% { opacity: 0.4; } 50% { opacity: 0.7; } }
+</style>
+</head>
+<body>
+
+<div id="title-screen">
+  <h1>PAIN</h1>
+  <p>Click or press any key to enter</p>
+</div>
+<canvas id="game"></canvas>
+<div id="room-name"></div>
+<div id="step-display">STEPS: 0</div>
+
+<script>
+(function() {
+'use strict';
+
+// ═══════════════════════════════════════════════
+//  CONSTANTS
+// ═══════════════════════════════════════════════
+const GW = 320, GH = 240, TILE = 16;
+const COLS = GW / TILE, ROWS = GH / TILE;
+const SPEED = 1.3;
+
+// Wall layout (in tiles)
+const WT = 2, WB = 1, WL = 1, WR = 1;
+const PLAY_L = WL * TILE, PLAY_R = GW - WR * TILE;
+const PLAY_T = WT * TILE, PLAY_B = GH - WB * TILE;
+const DOOR_T = 2; // door width in tiles
+const DOOR_PX = DOOR_T * TILE;
+
+// ═══════════════════════════════════════════════
+//  PIXEL FONT (5×7 bitmasks for digits 0-9)
+// ═══════════════════════════════════════════════
+const FONT = [
+  [0x0E,0x11,0x13,0x15,0x19,0x11,0x0E],
+  [0x04,0x0C,0x04,0x04,0x04,0x04,0x0E],
+  [0x0E,0x11,0x01,0x06,0x08,0x10,0x1F],
+  [0x0E,0x11,0x01,0x06,0x01,0x11,0x0E],
+  [0x02,0x06,0x0A,0x12,0x1F,0x02,0x02],
+  [0x1F,0x10,0x1E,0x01,0x01,0x11,0x0E],
+  [0x06,0x08,0x10,0x1E,0x11,0x11,0x0E],
+  [0x1F,0x01,0x02,0x04,0x08,0x08,0x08],
+  [0x0E,0x11,0x11,0x0E,0x11,0x11,0x0E],
+  [0x0E,0x11,0x11,0x0F,0x01,0x02,0x0C],
+];
+
+function drawDigits(ctx, numStr, x, y, scale, color) {
+  const fw = 5, fh = 7, gap = scale;
+  ctx.fillStyle = color;
+  const MINUS = [0x00,0x00,0x00,0x1F,0x00,0x00,0x00]; // full-width dash
+  for (let d = 0; d < numStr.length; d++) {
+    const ch = numStr[d];
+    const bits = ch === '-' ? MINUS : FONT[parseInt(ch)];
+    if (!bits) continue;
+    const ox = Math.floor(x + d * (fw * scale + gap));
+    for (let r = 0; r < fh; r++) {
+      for (let c = 0; c < fw; c++) {
+        if (bits[r] & (0x10 >> c)) {
+          ctx.fillRect(ox + c * scale, y + r * scale, scale, scale);
+        }
+      }
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════
+//  SPRITE DATA — 10-year-old boy, brown hair,
+//  blue sweater, 12×18 pixels
+// ═══════════════════════════════════════════════
+const SP_W = 12, SP_H = 18;
+const SP_PAL = [
+  null,        // 0 transparent
+  '#0a0810',   // 1 outline
+  '#5a3218',   // 2 hair dark
+  '#7a4828',   // 3 hair light
+  '#1e3888',   // 4 sweater dark
+  '#2e58b8',   // 5 sweater blue
+  '#d4a878',   // 6 skin
+  '#1a1a28',   // 7 pants/shoes
+  '#2a2a3a',   // 8 pants lighter
+  '#e8d0b0',   // 9 skin highlight
+];
+
+// Body templates (rows 0-13), then leg rows for idle/walk
+const BODY_DOWN = [
+  '000233332000','002333333200','023366633200','016666666100',
+  '016661166100','016666666100','001666661000','001555551000',
+  '014555555410','016555555610','014555555410','001455554100',
+  '000155551000','000188881000',
+];
+const BODY_UP = [
+  '000233332000','002333333200','023333333200','012333333210',
+  '012333333210','012222222100','001266621000','001555551000',
+  '014555555410','016555555610','014555555410','001455554100',
+  '000155551000','000188881000',
+];
+const BODY_LEFT = [
+  '000000000000','001233320000','012333321000','023366621000',
+  '126666621000','126616610000','016666610000','001555510000',
+  '015555551000','155555555100','165555555100','155555551000',
+  '015555510000','001888810000',
+];
+
+const LEGS = {
+  down_idle:  ['000178871000','000170071000','000010010000','000000000000'],
+  down_walk1: ['000188781000','001780078000','000100001000','000000000000'],
+  down_walk2: ['000187881000','000780178100','000100001000','000000000000'],
+  up_idle:    ['000178871000','000170071000','000010010000','000000000000'],
+  up_walk1:   ['000188781000','001780078000','000100001000','000000000000'],
+  up_walk2:   ['000187881000','000780178100','000100001000','000000000000'],
+  left_idle:  ['001878810000','001070100000','000010100000','000000000000'],
+  left_walk1: ['001887010000','000100100000','000000000000','000000000000'],
+  left_walk2: ['000178810000','000100010000','000000000000','000000000000'],
+};
+
+// Assemble frames
+const SP = {};
+function addFrame(name, body, legs) { SP[name] = [...body, ...legs]; }
+addFrame('down0', BODY_DOWN, LEGS.down_idle);
+addFrame('down1', BODY_DOWN, LEGS.down_walk1);
+addFrame('down2', BODY_DOWN, LEGS.down_walk2);
+addFrame('up0', BODY_UP, LEGS.up_idle);
+addFrame('up1', BODY_UP, LEGS.up_walk1);
+addFrame('up2', BODY_UP, LEGS.up_walk2);
+addFrame('left0', BODY_LEFT, LEGS.left_idle);
+addFrame('left1', BODY_LEFT, LEGS.left_walk1);
+addFrame('left2', BODY_LEFT, LEGS.left_walk2);
+// Right = mirror of left
+['left0','left1','left2'].forEach(k => {
+  SP[k.replace('left','right')] = SP[k].map(r => r.split('').reverse().join(''));
+});
+
+// Pre-render to offscreen canvases
+const spriteImg = {};
+Object.keys(SP).forEach(key => {
+  const c = document.createElement('canvas');
+  c.width = SP_W; c.height = SP_H;
+  const cx = c.getContext('2d');
+  SP[key].forEach((row, y) => {
+    for (let x = 0; x < SP_W; x++) {
+      const ci = parseInt(row[x]);
+      if (ci > 0 && SP_PAL[ci]) { cx.fillStyle = SP_PAL[ci]; cx.fillRect(x, y, 1, 1); }
+    }
+  });
+  spriteImg[key] = c;
+});
+
+// ═══════════════════════════════════════════════
+//  ROOM THEMES
+// ═══════════════════════════════════════════════
+const THEMES = {
+  'stone-hall': {
+    floor1:'#1e1a14', floor2:'#221e16', wallMain:'#2a2418', wallFace:'#342c22',
+    wallTop:'#161210', doorFrame:'#3a3228', numColor:'#2a2620',
+    ambient:[{x:.25,y:.3,r:90,c:'rgba(255,150,50,0.10)'},{x:.75,y:.3,r:90,c:'rgba(255,150,50,0.10)'}],
+    decor(ctx) {
+      // Torches
+      [GW*.22, GW*.78].forEach(tx => {
+        ctx.fillStyle='#3a2a1a'; ctx.fillRect(tx-1,TILE+4,3,8);
+        ctx.fillStyle='#ff8020'; ctx.fillRect(tx-2,TILE,5,5);
+        ctx.fillStyle='#ffb040'; ctx.fillRect(tx-1,TILE+1,3,3);
+      });
+    }
+  },
+  'library': {
+    floor1:'#1c1610', floor2:'#201a12', wallMain:'#2a1e14', wallFace:'#342818',
+    wallTop:'#12100a', doorFrame:'#382a1a', numColor:'#28221a',
+    ambient:[{x:.5,y:.3,r:70,c:'rgba(255,180,60,0.12)'}],
+    decor(ctx) {
+      const cols = ['#4a2020','#2a3a20','#20304a','#4a3a10','#3a2030'];
+      [4, GW-14].forEach(bx => {
+        for (let sy=PLAY_T+8; sy<PLAY_B-24; sy+=6)
+          for (let i=0;i<2;i++) { ctx.fillStyle=cols[(sy+i)%5]; ctx.fillRect(bx+i*5,sy,4,5); }
+      });
+      ctx.fillStyle='#d4c0a0'; ctx.fillRect(GW/2-1,PLAY_T+12,2,6);
+      ctx.fillStyle='#ffe080'; ctx.fillRect(GW/2-2,PLAY_T+8,4,4);
+    }
+  },
+  'courtyard': {
+    floor1:'#0e1a10', floor2:'#101c12', wallMain:'#141e1a', wallFace:'#1a2820',
+    wallTop:'#0a0e14', doorFrame:'#1e2a22', numColor:'#182018',
+    ambient:[{x:.6,y:.12,r:130,c:'rgba(180,200,255,0.07)'}],
+    decor(ctx) {
+      ctx.fillStyle='#c0b8d0';
+      ctx.beginPath(); ctx.arc(GW*.65,12,8,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle='#e8e4f0';
+      ctx.beginPath(); ctx.arc(GW*.64,10,5,0,Math.PI*2); ctx.fill();
+      ctx.globalAlpha=.35; ctx.fillStyle='#1a3020';
+      ctx.fillRect(18,0,1,55); ctx.fillRect(GW-22,0,1,65);
+      ctx.globalAlpha=1;
+    }
+  },
+  'dungeon': {
+    floor1:'#10140e', floor2:'#121610', wallMain:'#1a1e16', wallFace:'#222820',
+    wallTop:'#0a0c08', doorFrame:'#222a1e', numColor:'#1a1e16',
+    ambient:[{x:.4,y:.5,r:55,c:'rgba(80,160,80,0.05)'}],
+    decor(ctx) {
+      // Chains
+      ctx.fillStyle='#505850'; ctx.globalAlpha=.25;
+      for (let y=PLAY_T;y<PLAY_T+48;y+=4) {
+        ctx.fillRect(GW*.2,y,2,2); ctx.fillRect(GW*.8,y+2,2,2);
+      }
+      ctx.globalAlpha=1;
+      ctx.fillStyle='rgba(60,100,60,0.04)';
+      ctx.fillRect(0,PLAY_B-30,GW,30);
+
+      // ── Graffiti scrawled on walls — scratched, desperate, layered ──
+      ctx.save();
+      const scrawl = (text, x, y, size, angle, alpha, color) => {
+        ctx.save();
+        ctx.translate(x, y); ctx.rotate(angle);
+        ctx.font = 'bold ' + size + 'px monospace';
+        ctx.fillStyle = color;
+        ctx.globalAlpha = alpha;
+        ctx.fillText(text, 0, 0);
+        ctx.restore();
+      };
+
+      // Left wall — panicked, layered
+      scrawl('HELP', PLAY_L+6, PLAY_T+26, 9, -0.08, 0.55, '#b0a880');
+      scrawl('HELP ME', PLAY_L+4, PLAY_T+40, 6, 0.1, 0.35, '#a09870');
+      scrawl('no way out', PLAY_L+4, PLAY_T+54, 6, 0.05, 0.4, '#908868');
+      scrawl('no way out', PLAY_L+5, PLAY_T+55, 6, 0.05, 0.2, '#706848'); // shadow/retraced
+      scrawl('III IIII II', PLAY_L+8, PLAY_T+72, 5, -0.03, 0.35, '#90a088');
+      scrawl('NOT REAL', PLAY_L+6, PLAY_T+100, 7, 0.12, 0.4, '#b09070');
+      scrawl('it watches', PLAY_L+10, PLAY_T+116, 5, -0.06, 0.3, '#808870');
+
+      // Right wall — angrier, bigger
+      scrawl('TURN BACK', PLAY_R-58, PLAY_T+22, 7, 0.06, 0.5, '#c0a880');
+      scrawl('WHY', PLAY_R-30, PLAY_T+42, 11, -0.12, 0.6, '#d0b080');
+      scrawl('WHY WHY WHY', PLAY_R-62, PLAY_T+58, 5, 0.03, 0.35, '#a09060');
+      scrawl('day 47', PLAY_R-38, PLAY_T+74, 5, 0.02, 0.35, '#908868');
+      scrawl('day 48?', PLAY_R-38, PLAY_T+84, 4, -0.04, 0.25, '#807858');
+      scrawl('LIAR', PLAY_R-34, PLAY_T+98, 8, -0.08, 0.5, '#c09070');
+      scrawl('DONT TRUST 6', PLAY_R-62, PLAY_T+114, 5, 0.04, 0.4, '#a0a078');
+
+      // Back wall (top)
+      scrawl('NO EXIT', GW/2-24, PLAY_T-2, 7, 0.04, 0.5, '#b0a070');
+      scrawl('PAIN', GW/2+30, PLAY_T-4, 6, -0.1, 0.4, '#c08060');
+
+      // Floor scrawls
+      scrawl('FIND THE KEY', GW/2-30, PLAY_B-40, 5, 0.02, 0.25, '#707860');
+      scrawl('remember', GW/2+20, PLAY_B-55, 4, -0.08, 0.2, '#606850');
+
+      // Tally marks on left wall (groups of 5) — brighter
+      ctx.strokeStyle = 'rgba(180,180,160,0.35)'; ctx.lineWidth = 1;
+      for (let g=0; g<5; g++) {
+        const gx = PLAY_L+8+g*14, gy = PLAY_T+130;
+        for (let i=0; i<4; i++) {
+          ctx.beginPath(); ctx.moveTo(gx+i*3, gy); ctx.lineTo(gx+i*3+1, gy+8); ctx.stroke();
+        }
+        ctx.beginPath(); ctx.moveTo(gx-1, gy+6); ctx.lineTo(gx+11, gy+1); ctx.stroke();
+      }
+      // Incomplete group
+      ctx.strokeStyle = 'rgba(180,180,160,0.25)';
+      const lgx = PLAY_L+8+5*14, lgy = PLAY_T+130;
+      for (let i=0; i<2; i++) {
+        ctx.beginPath(); ctx.moveTo(lgx+i*3, lgy); ctx.lineTo(lgx+i*3+1, lgy+8); ctx.stroke();
+      }
+
+      // Scratched arrow pointing at bottom door — brighter
+      ctx.strokeStyle = 'rgba(180,190,160,0.3)'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(GW/2-30, PLAY_B-20); ctx.lineTo(GW/2, PLAY_B-10); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(GW/2, PLAY_B-10); ctx.lineTo(GW/2-6, PLAY_B-16); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(GW/2, PLAY_B-10); ctx.lineTo(GW/2-8, PLAY_B-8); ctx.stroke();
+
+      // X marks
+      ctx.strokeStyle = 'rgba(160,100,80,0.3)'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(PLAY_R-20,PLAY_B-30); ctx.lineTo(PLAY_R-10,PLAY_B-20); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(PLAY_R-10,PLAY_B-30); ctx.lineTo(PLAY_R-20,PLAY_B-20); ctx.stroke();
+
+      ctx.restore();
+    }
+  },
+  'hallway': {
+    floor1:'#18140e', floor2:'#1c1810', wallMain:'#221e16', wallFace:'#2a2620',
+    wallTop:'#100e0a', doorFrame:'#2e281e', numColor:'#221e18',
+    ambient:[{x:.5,y:.4,r:45,c:'rgba(200,160,100,0.06)'}],
+    decor(ctx) {
+      ctx.fillStyle='rgba(0,0,0,0.18)';
+      ctx.fillRect(PLAY_L,PLAY_T,22,PLAY_B-PLAY_T);
+      ctx.fillRect(PLAY_R-22,PLAY_T,22,PLAY_B-PLAY_T);
+      ctx.fillStyle='#3a3020'; ctx.fillRect(GW/2-1,PLAY_T+4,2,4);
+      ctx.fillStyle='#ff9030'; ctx.fillRect(GW/2-2,PLAY_T+1,4,3);
+    }
+  },
+  'living-room': {
+    floor1:'#1e1810', floor2:'#221c12', wallMain:'#282018', wallFace:'#302820',
+    wallTop:'#141010', doorFrame:'#342c20', numColor:'#262018',
+    ambient:[{x:.7,y:.3,r:75,c:'rgba(255,200,100,0.08)'},{x:.5,y:.7,r:35,c:'rgba(255,120,30,0.05)'}],
+    decor(ctx) {
+      // Window
+      ctx.fillStyle='#302820'; ctx.fillRect(GW*.72,PLAY_T+6,18,22);
+      ctx.fillStyle='rgba(60,50,30,0.3)'; ctx.fillRect(GW*.72+2,PLAY_T+8,14,18);
+      ctx.fillStyle='#302820';
+      ctx.fillRect(GW*.72+8,PLAY_T+8,2,18);
+      ctx.fillRect(GW*.72+2,PLAY_T+16,14,2);
+      // Rug
+      ctx.fillStyle='rgba(60,30,20,0.12)'; ctx.fillRect(GW/2-18,GH/2+8,36,18);
+    }
+  },
+  'crawlspace': {
+    floor1:'#12100c', floor2:'#161410', wallMain:'#1e1a14', wallFace:'#262218',
+    wallTop:'#0a0808', doorFrame:'#262018', numColor:'#1c1810',
+    ambient:[{x:.5,y:.5,r:35,c:'rgba(160,130,80,0.03)'}],
+    decor(ctx) {
+      ctx.fillStyle='rgba(0,0,0,0.22)';
+      ctx.fillRect(PLAY_L,PLAY_T,30,PLAY_B-PLAY_T);
+      ctx.fillRect(PLAY_R-30,PLAY_T,30,PLAY_B-PLAY_T);
+      ctx.fillRect(PLAY_L,PLAY_T,PLAY_R-PLAY_L,18);
+      ctx.strokeStyle='rgba(160,140,110,0.06)'; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.moveTo(GW*.35,GH*.4); ctx.lineTo(GW*.38,GH*.46); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(GW*.36,GH*.43); ctx.lineTo(GW*.39,GH*.49); ctx.stroke();
+    }
+  },
+  'death': {
+    floor1:'#140808', floor2:'#180a0a', wallMain:'#200c0c', wallFace:'#2a1010',
+    wallTop:'#0a0404', doorFrame:'#301414', numColor:'#1a0808',
+    ambient:[{x:.5,y:.5,r:100,c:'rgba(200,30,30,0.08)'}],
+    decor(ctx) {
+      // Ominous red glow from center
+      ctx.fillStyle='rgba(120,10,10,0.06)';
+      ctx.beginPath(); ctx.arc(GW/2,GH/2,60,0,Math.PI*2); ctx.fill();
+      // Skull-like marks on floor
+      ctx.fillStyle='rgba(100,40,40,0.1)';
+      ctx.fillRect(GW/2-8,GH/2-6,4,4); ctx.fillRect(GW/2+4,GH/2-6,4,4);
+      ctx.fillRect(GW/2-4,GH/2+2,8,3);
+    }
+  }
+};
+
+// ═══════════════════════════════════════════════
+//  MAZE DATA
+//  Connections are bidirectional on matching walls
+//  (exit left = enter right in target)
+// ═══════════════════════════════════════════════
+const ROOMS = [
+  { id:'the-pit',      num:-1, type:'death',       title:'The Pit', isDeath:true,
+    doors:[{wall:'right',target:'entrance'}] },
+  { id:'entrance',     num:1, type:'stone-hall',  title:'The Entrance',
+    doors:[{wall:'left',target:'the-pit'},{wall:'right',target:'old-library'},{wall:'bottom',target:'west-corridor'}] },
+  { id:'old-library',  num:2, type:'library',     title:'The Old Library',
+    doors:[{wall:'left',target:'entrance'},{wall:'bottom',target:'the-cell'},{wall:'right',target:'sitting-room',locked:true}] },
+  { id:'west-corridor',num:3, type:'hallway',     title:'West Corridor', hasKey:true,
+    doors:[{wall:'top',target:'entrance'},{wall:'right',target:'the-cell'}] },
+  { id:'the-cell',     num:4, type:'dungeon',     title:'The Cell', hasKey:true,
+    doors:[{wall:'top',target:'old-library'},{wall:'left',target:'west-corridor'},{wall:'bottom',target:'inner-court'}] },
+  { id:'sitting-room', num:5, type:'living-room', title:'The Sitting Room',
+    doors:[{wall:'left',target:'old-library',locked:true},{wall:'bottom',target:'the-gap'}] },
+  { id:'inner-court',  num:6, type:'courtyard',   title:'The Inner Court',
+    doors:[{wall:'top',target:'the-cell'},{wall:'right',target:'the-gap',locked:true}] },
+  { id:'the-gap',      num:7, type:'crawlspace',  title:'The Gap',
+    doors:[{wall:'top',target:'sitting-room'},{wall:'left',target:'inner-court',locked:true}] },
+];
+
+const roomMap = {}; ROOMS.forEach(r => roomMap[r.id] = r);
+
+// ═══════════════════════════════════════════════
+//  GAME STATE
+// ═══════════════════════════════════════════════
+const S = {
+  room: 'entrance',
+  px: GW/2, py: (PLAY_T+PLAY_B)/2 + 10,
+  dir: 'down', moving: false,
+  aFrame: 0, aTimer: 0,
+  fadeA: 0, trans: false, tPhase: null,
+  nextRoom: null, nextWall: null,
+  steps: 0, started: false, keys: {},
+  keyCount: 0, pickedKeys: {}, openedDoors: {},
+  time: 0, blocked: 0,
+  dead: false, deathTimer: 0,
+};
+
+// ═══════════════════════════════════════════════
+//  CANVAS
+// ═══════════════════════════════════════════════
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+canvas.width = GW; canvas.height = GH;
+ctx.imageSmoothingEnabled = false;
+
+function resize() {
+  const s = Math.max(1, Math.floor(Math.min(window.innerWidth/GW, window.innerHeight/GH)));
+  canvas.style.width = (GW*s)+'px'; canvas.style.height = (GH*s)+'px';
+}
+window.addEventListener('resize', resize); resize();
+
+// ═══════════════════════════════════════════════
+//  INPUT
+// ═══════════════════════════════════════════════
+window.addEventListener('keydown', e => {
+  if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)) e.preventDefault();
+  if (!S.started) { startGame(); return; }
+  if (S.dead && (e.key==='r'||e.key==='R')) { restartGame(); return; }
+  S.keys[e.key]=true;
+});
+window.addEventListener('keyup', e => { S.keys[e.key]=false; });
+document.getElementById('title-screen').addEventListener('click', () => { if (!S.started) startGame(); });
+function startGame() {
+  S.started=true;
+  document.getElementById('title-screen').classList.add('hidden');
+  initAudio();
+}
+
+function restartGame() {
+  S.room='entrance'; S.px=GW/2; S.py=(PLAY_T+PLAY_B)/2+10;
+  S.dir='down'; S.moving=false; S.aFrame=0; S.aTimer=0;
+  S.fadeA=0; S.trans=false; S.tPhase=null;
+  S.steps=0; S.keyCount=0; S.pickedKeys={}; S.openedDoors={};
+  S.dead=false; S.deathTimer=0; S.blocked=0;
+  document.getElementById('step-display').textContent='STEPS: 0';
+  updateUI();
+  // Restart melody
+  if (audioCtx) { startRoomMusic(); shiftDrone('stone-hall'); }
+}
+
+// ═══════════════════════════════════════════════
+//  AUDIO — ambient drone + chiptune melody
+//  All procedurally generated via Web Audio API
+// ═══════════════════════════════════════════════
+let audioCtx, masterGain;
+
+function initAudio() {
+  try {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    masterGain = audioCtx.createGain();
+    masterGain.gain.value = 0.35;
+    masterGain.connect(audioCtx.destination);
+
+    startDrone();
+    startRoomMusic();
+  } catch(e) { /* audio not supported, silent fail */ }
+}
+
+function startDrone() {
+  // Deep ambient drone — two detuned oscillators + filter + noise
+  // Store nodes so we can shift them per room
+  S.droneOscs = [];
+  S.droneFilters = [];
+
+  const freqs = [55, 55.3, 82.4];
+  freqs.forEach((f, i) => {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    const filter = audioCtx.createBiquadFilter();
+
+    osc.type = i < 2 ? 'sawtooth' : 'sine';
+    osc.frequency.value = f;
+    filter.type = 'lowpass';
+    filter.frequency.value = 200 + i * 60;
+    filter.Q.value = 1;
+    gain.gain.value = i < 2 ? 0.06 : 0.1;
+
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(masterGain);
+    osc.start();
+
+    const lfo = audioCtx.createOscillator();
+    const lfoGain = audioCtx.createGain();
+    lfo.frequency.value = 0.05 + i * 0.02;
+    lfoGain.gain.value = 80;
+    lfo.connect(lfoGain);
+    lfoGain.connect(filter.frequency);
+    lfo.start();
+
+    S.droneOscs.push(osc);
+    S.droneFilters.push(filter);
+  });
+
+  // Low rumble noise layer
+  const bufSize = audioCtx.sampleRate * 4;
+  const buf = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < bufSize; i++) data[i] = (Math.random() * 2 - 1) * 0.3;
+  const noise = audioCtx.createBufferSource();
+  noise.buffer = buf;
+  noise.loop = true;
+  S.droneNoiseFilter = audioCtx.createBiquadFilter();
+  S.droneNoiseFilter.type = 'lowpass';
+  S.droneNoiseFilter.frequency.value = 80;
+  const nGain = audioCtx.createGain();
+  nGain.gain.value = 0.08;
+  noise.connect(S.droneNoiseFilter);
+  S.droneNoiseFilter.connect(nGain);
+  nGain.connect(masterGain);
+  noise.start();
+}
+
+// Per-room drone settings: base pitch shift and filter character
+const DRONE_MOODS = {
+  'stone-hall':  { freqs:[55, 55.3, 82.4], filterBase:200, noiseFreq:80 },
+  'library':     { freqs:[58, 58.4, 87.3], filterBase:160, noiseFreq:60 },
+  'courtyard':   { freqs:[52, 52.2, 78],   filterBase:240, noiseFreq:100 },
+  'dungeon':     { freqs:[49, 49.4, 73.4], filterBase:140, noiseFreq:120 },
+  'hallway':     { freqs:[55, 55.5, 82.4], filterBase:170, noiseFreq:70 },
+  'living-room': { freqs:[62, 62.2, 92.5], filterBase:220, noiseFreq:50 },
+  'crawlspace':  { freqs:[46, 46.5, 69.3], filterBase:120, noiseFreq:140 },
+  'death':       { freqs:[40, 40.6, 60],   filterBase:100, noiseFreq:180 },
+};
+
+function shiftDrone(roomType) {
+  if (!audioCtx || !S.droneOscs) return;
+  const mood = DRONE_MOODS[roomType] || DRONE_MOODS['stone-hall'];
+  const t = audioCtx.currentTime;
+  const ramp = 1.5; // smooth 1.5s transition
+  S.droneOscs.forEach((osc, i) => {
+    osc.frequency.linearRampToValueAtTime(mood.freqs[i], t + ramp);
+  });
+  S.droneFilters.forEach((f, i) => {
+    f.frequency.linearRampToValueAtTime(mood.filterBase + i * 60, t + ramp);
+  });
+  if (S.droneNoiseFilter) {
+    S.droneNoiseFilter.frequency.linearRampToValueAtTime(mood.noiseFreq, t + ramp);
+  }
+}
+
+// ── Zelda-style continuous dungeon melody ──
+// One loop for the entire dungeon, never changes room to room.
+// D minor, ~70 seconds, square + triangle voices.
+const R = 'rest';
+const MELODY = [
+  // ── A: Main theme — establishes the dungeon ──
+  {n:0,d:.4,w:'square'},   // D
+  {n:3,d:.3,w:'square'},   // F
+  {n:5,d:.4,w:'square'},   // G
+  {n:7,d:.6,w:'square'},   // A
+  {n:3,d:.3,w:'square'},   // F
+  {n:0,d:.5,w:'square'},   // D
+  {n:-2,d:.4,w:'square'},  // C
+  {n:0,d:.7,w:'square'},   // D (hold)
+  {n:R,d:.4},
+  {n:5,d:.3,w:'square'},   // G
+  {n:7,d:.3,w:'square'},   // A
+  {n:8,d:.5,w:'square'},   // Bb
+  {n:7,d:.4,w:'square'},   // A
+  {n:5,d:.3,w:'square'},   // G
+  {n:3,d:.6,w:'square'},   // F
+  {n:0,d:.8,w:'square'},   // D (hold)
+  {n:R,d:.6},
+
+  // ── A2: Main theme variation — slightly different ending ──
+  {n:0,d:.4,w:'square'},
+  {n:3,d:.3,w:'square'},
+  {n:5,d:.4,w:'square'},
+  {n:7,d:.6,w:'square'},
+  {n:8,d:.3,w:'square'},   // Bb (higher this time)
+  {n:7,d:.4,w:'square'},   // A
+  {n:5,d:.3,w:'square'},   // G
+  {n:3,d:.5,w:'square'},   // F
+  {n:0,d:.7,w:'square'},   // D
+  {n:R,d:.3},
+  {n:-2,d:.3,w:'square'},  // C
+  {n:-4,d:.4,w:'square'},  // Bb low
+  {n:-2,d:.3,w:'square'},  // C
+  {n:0,d:.9,w:'square'},   // D (resolve)
+  {n:R,d:.7},
+
+  // ── B: Counter-melody — triangle voice, contemplative ──
+  {n:12,d:.5,w:'triangle'}, // D high
+  {n:10,d:.4,w:'triangle'}, // C high
+  {n:7,d:.5,w:'triangle'},  // A
+  {n:5,d:.6,w:'triangle'},  // G
+  {n:R,d:.3},
+  {n:7,d:.4,w:'triangle'},  // A
+  {n:8,d:.3,w:'triangle'},  // Bb
+  {n:7,d:.4,w:'triangle'},  // A
+  {n:5,d:.5,w:'triangle'},  // G
+  {n:3,d:.7,w:'triangle'},  // F (hold)
+  {n:R,d:.3},
+  {n:5,d:.3,w:'triangle'},  // G
+  {n:3,d:.3,w:'triangle'},  // F
+  {n:0,d:.4,w:'triangle'},  // D
+  {n:-2,d:.4,w:'triangle'}, // C
+  {n:0,d:.9,w:'triangle'},  // D (resolve)
+  {n:R,d:.6},
+
+  // ── C: Tension — faster, chromatic, building ──
+  {n:0,d:.25,w:'square'},
+  {n:1,d:.25,w:'square'},   // D#/Eb (chromatic!)
+  {n:0,d:.25,w:'square'},
+  {n:-2,d:.35,w:'square'},  // C
+  {n:R,d:.15},
+  {n:0,d:.25,w:'square'},
+  {n:3,d:.25,w:'square'},   // F
+  {n:5,d:.25,w:'square'},   // G
+  {n:7,d:.3,w:'square'},    // A
+  {n:8,d:.25,w:'square'},   // Bb
+  {n:10,d:.4,w:'square'},   // C high
+  {n:R,d:.2},
+  {n:12,d:.3,w:'square'},   // D high
+  {n:10,d:.25,w:'square'},  // C high
+  {n:8,d:.25,w:'square'},   // Bb
+  {n:7,d:.3,w:'square'},    // A
+  {n:5,d:.25,w:'square'},   // G
+  {n:3,d:.35,w:'square'},   // F
+  {n:0,d:.3,w:'square'},    // D
+  {n:-2,d:.3,w:'square'},   // C
+  {n:0,d:.7,w:'square'},    // D (hold)
+  {n:R,d:.4},
+
+  // ── C2: Tension peak — octave jumps ──
+  {n:0,d:.3,w:'square'},    // D
+  {n:12,d:.3,w:'square'},   // D high
+  {n:0,d:.3,w:'square'},    // D
+  {n:R,d:.2},
+  {n:3,d:.3,w:'square'},    // F
+  {n:15,d:.3,w:'square'},   // F high
+  {n:3,d:.3,w:'square'},    // F
+  {n:R,d:.2},
+  {n:7,d:.4,w:'square'},    // A
+  {n:8,d:.3,w:'square'},    // Bb
+  {n:7,d:.3,w:'square'},    // A
+  {n:5,d:.3,w:'square'},    // G
+  {n:3,d:.4,w:'square'},    // F
+  {n:0,d:.8,w:'square'},    // D (big hold)
+  {n:R,d:.6},
+
+  // ── D: Resolution — gentle, triangle, winding down ──
+  {n:0,d:.5,w:'triangle'},  // D
+  {n:R,d:.25},
+  {n:3,d:.5,w:'triangle'},  // F
+  {n:R,d:.25},
+  {n:5,d:.6,w:'triangle'},  // G
+  {n:3,d:.4,w:'triangle'},  // F
+  {n:0,d:.7,w:'triangle'},  // D
+  {n:R,d:.3},
+  {n:-2,d:.4,w:'triangle'}, // C
+  {n:-5,d:.5,w:'triangle'}, // A low
+  {n:-2,d:.4,w:'triangle'}, // C
+  {n:0,d:1.0,w:'triangle'}, // D (long hold)
+  {n:R,d:.4},
+
+  // ── D2: Final phrase — sparse, fading ──
+  {n:7,d:.6,w:'triangle'},  // A
+  {n:5,d:.5,w:'triangle'},  // G
+  {n:3,d:.4,w:'triangle'},  // F
+  {n:0,d:.8,w:'triangle'},  // D
+  {n:R,d:.3},
+  {n:-5,d:.5,w:'triangle'}, // A low
+  {n:0,d:1.2,w:'triangle'}, // D (final hold)
+  {n:R,d:1.5},              // long silence before loop
+];
+
+const MELODY_BASE = 147; // D3
+
+let melodyTimeout = null;
+
+function startDungeonMelody() {
+  scheduleMelody(audioCtx.currentTime + 1.0);
+}
+
+function scheduleMelody(startTime) {
+  if (!audioCtx || audioCtx.state !== 'running') return;
+  let t = startTime;
+  const gap = 0.06;
+  MELODY.forEach(p => {
+    if (p.n !== R) {
+      const freq = MELODY_BASE * Math.pow(2, p.n / 12);
+      playChipNote(freq, t, p.d - gap, p.w || 'square');
+    }
+    t += p.d;
+  });
+  const loopDur = MELODY.reduce((s, p) => s + p.d, 0);
+  melodyTimeout = setTimeout(() => {
+    scheduleMelody(audioCtx.currentTime + 0.05);
+  }, (loopDur - 0.3) * 1000);
+}
+
+function startRoomMusic() {
+  startDungeonMelody();
+}
+
+function playChipNote(freq, time, dur, wave) {
+  // Square wave with quick attack/release for chiptune feel
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  const filter = audioCtx.createBiquadFilter();
+
+  osc.type = wave || 'square';
+  osc.frequency.value = freq;
+
+  // Slight pitch bend at start (classic chip sound)
+  osc.frequency.setValueAtTime(freq * 1.01, time);
+  osc.frequency.linearRampToValueAtTime(freq, time + 0.03);
+
+  filter.type = 'lowpass';
+  filter.frequency.value = 1800;
+
+  gain.gain.setValueAtTime(0, time);
+  gain.gain.linearRampToValueAtTime(0.12, time + 0.015);  // snappy attack
+  gain.gain.setValueAtTime(0.09, time + 0.04);             // sustain
+  gain.gain.linearRampToValueAtTime(0, time + dur);         // release
+
+  osc.connect(filter);
+  filter.connect(gain);
+  gain.connect(masterGain);
+
+  osc.start(time);
+  osc.stop(time + dur + 0.05);
+}
+
+function sfxPickup() {
+  if (!audioCtx) return;
+  const t = audioCtx.currentTime;
+  // Bright ascending arpeggio — classic item pickup
+  [523, 659, 784, 1047].forEach((f, i) => {
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    osc.type = 'square';
+    osc.frequency.value = f;
+    g.gain.setValueAtTime(0, t + i * 0.07);
+    g.gain.linearRampToValueAtTime(0.15, t + i * 0.07 + 0.01);
+    g.gain.linearRampToValueAtTime(0, t + i * 0.07 + 0.15);
+    osc.connect(g); g.connect(masterGain);
+    osc.start(t + i * 0.07);
+    osc.stop(t + i * 0.07 + 0.2);
+  });
+}
+
+function sfxUnlock() {
+  if (!audioCtx) return;
+  const t = audioCtx.currentTime;
+  // Loud metallic clunk + heavy rising tone + confirmation chime
+  // Clunk (big noise burst)
+  const buf = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.2, audioCtx.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (audioCtx.sampleRate * 0.04));
+  const noise = audioCtx.createBufferSource();
+  noise.buffer = buf;
+  const nf = audioCtx.createBiquadFilter();
+  nf.type = 'bandpass'; nf.frequency.value = 600; nf.Q.value = 2;
+  const ng = audioCtx.createGain();
+  ng.gain.value = 0.6;
+  noise.connect(nf); nf.connect(ng); ng.connect(masterGain);
+  noise.start(t);
+  // Heavy rising tone
+  const osc = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  osc.type = 'triangle';
+  osc.frequency.setValueAtTime(180, t + 0.1);
+  osc.frequency.linearRampToValueAtTime(440, t + 0.4);
+  g.gain.setValueAtTime(0, t + 0.1);
+  g.gain.linearRampToValueAtTime(0.3, t + 0.15);
+  g.gain.linearRampToValueAtTime(0, t + 0.5);
+  osc.connect(g); g.connect(masterGain);
+  osc.start(t + 0.1); osc.stop(t + 0.5);
+  // Confirmation chime (two bright notes)
+  [523, 784].forEach((f, i) => {
+    const o2 = audioCtx.createOscillator();
+    const g2 = audioCtx.createGain();
+    o2.type = 'square';
+    o2.frequency.value = f;
+    g2.gain.setValueAtTime(0, t + 0.4 + i * 0.12);
+    g2.gain.linearRampToValueAtTime(0.2, t + 0.41 + i * 0.12);
+    g2.gain.linearRampToValueAtTime(0, t + 0.55 + i * 0.12);
+    o2.connect(g2); g2.connect(masterGain);
+    o2.start(t + 0.4 + i * 0.12);
+    o2.stop(t + 0.6 + i * 0.12);
+  });
+}
+
+function sfxBlocked() {
+  if (!audioCtx) return;
+  const t = audioCtx.currentTime;
+  // Low buzz — can't pass
+  const osc = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  osc.type = 'sawtooth';
+  osc.frequency.value = 80;
+  const f = audioCtx.createBiquadFilter();
+  f.type = 'lowpass'; f.frequency.value = 300;
+  g.gain.setValueAtTime(0.15, t);
+  g.gain.linearRampToValueAtTime(0, t + 0.2);
+  osc.connect(f); f.connect(g); g.connect(masterGain);
+  osc.start(t); osc.stop(t + 0.25);
+}
+
+function sfxDeath() {
+  if (!audioCtx) return;
+  const t = audioCtx.currentTime;
+  // Descending doom — three falling tones
+  [220, 165, 110].forEach((freq, i) => {
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.type = 'square';
+    o.frequency.setValueAtTime(freq, t + i * 0.3);
+    o.frequency.linearRampToValueAtTime(freq * 0.7, t + i * 0.3 + 0.28);
+    g.gain.setValueAtTime(0, t + i * 0.3);
+    g.gain.linearRampToValueAtTime(0.2, t + i * 0.3 + 0.02);
+    g.gain.setValueAtTime(0.15, t + i * 0.3 + 0.1);
+    g.gain.linearRampToValueAtTime(0, t + i * 0.3 + 0.3);
+    o.connect(g); g.connect(masterGain);
+    o.start(t + i * 0.3); o.stop(t + i * 0.3 + 0.35);
+  });
+  // Final low rumble
+  const o2 = audioCtx.createOscillator();
+  const g2 = audioCtx.createGain();
+  o2.type = 'sawtooth'; o2.frequency.value = 55;
+  const f2 = audioCtx.createBiquadFilter();
+  f2.type = 'lowpass'; f2.frequency.value = 200;
+  g2.gain.setValueAtTime(0, t + 0.9);
+  g2.gain.linearRampToValueAtTime(0.25, t + 1.0);
+  g2.gain.linearRampToValueAtTime(0, t + 2.0);
+  o2.connect(f2); f2.connect(g2); g2.connect(masterGain);
+  o2.start(t + 0.9); o2.stop(t + 2.1);
+}
+
+// ═══════════════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════════════
+function curRoom() { return roomMap[S.room]; }
+function curTheme() { return THEMES[curRoom().type]; }
+const OPP = {top:'bottom',bottom:'top',left:'right',right:'left'};
+
+function doorZone(wall) {
+  const cx=GW/2, cy=(PLAY_T+PLAY_B)/2, hp=DOOR_PX/2;
+  switch(wall) {
+    case 'top':    return {x:cx-hp, y:0,      w:DOOR_PX, h:PLAY_T};
+    case 'bottom': return {x:cx-hp, y:PLAY_B, w:DOOR_PX, h:TILE};
+    case 'left':   return {x:0,     y:cy-hp,  w:PLAY_L,  h:DOOR_PX};
+    case 'right':  return {x:PLAY_R,y:cy-hp,  w:TILE,    h:DOOR_PX};
+  }
+}
+
+function spawnPos(fromWall) {
+  const cx=GW/2, cy=(PLAY_T+PLAY_B)/2;
+  switch(fromWall) {
+    case 'top':    return {x:cx, y:PLAY_T+20, dir:'down'};
+    case 'bottom': return {x:cx, y:PLAY_B-8,  dir:'up'};
+    case 'left':   return {x:PLAY_L+20, y:cy, dir:'right'};
+    case 'right':  return {x:PLAY_R-20, y:cy, dir:'left'};
+  }
+}
+
+function hasDoor(room, wall) { return room.doors.some(d => d.wall===wall); }
+function doorPair(a,b) { return [a,b].sort().join(':'); }
+function isDoorLocked(d) { return d.locked && !S.openedDoors[doorPair(S.room,d.target)]; }
+const KEY_POS = {x:GW*0.62, y:(PLAY_T+PLAY_B)/2-15};
+
+function inDoorLane(wall, px, py, room) {
+  if (!hasDoor(room, wall)) return false;
+  const z = doorZone(wall);
+  if (wall==='top'||wall==='bottom') return px > z.x+3 && px < z.x+z.w-3;
+  return py > z.y+3 && py < z.y+z.h-3;
+}
+
+// ═══════════════════════════════════════════════
+//  UPDATE
+// ═══════════════════════════════════════════════
+function update() {
+  if (!S.started) return;
+  if (S.dead) { S.deathTimer += 1/60; return; }
+  if (S.trans) { updateTrans(); return; }
+  S.time += 1/60;
+  if (S.blocked > 0) S.blocked -= 0.05;
+
+  // Key pickup
+  const rm0 = curRoom();
+  if (rm0.hasKey && !S.pickedKeys[rm0.id]) {
+    if (Math.hypot(S.px-KEY_POS.x, S.py-KEY_POS.y) < 10) {
+      S.pickedKeys[rm0.id] = true;
+      S.keyCount++;
+      sfxPickup();
+    }
+  }
+
+  let dx=0, dy=0;
+  if (S.keys['ArrowLeft']||S.keys['a'])  { dx=-SPEED; S.dir='left'; }
+  if (S.keys['ArrowRight']||S.keys['d']) { dx=+SPEED; S.dir='right'; }
+  if (S.keys['ArrowUp']||S.keys['w'])    { dy=-SPEED; S.dir='up'; }
+  if (S.keys['ArrowDown']||S.keys['s'])  { dy=+SPEED; S.dir='down'; }
+  S.moving = dx!==0||dy!==0;
+
+  if (S.moving) {
+    if (dx!==0 && dy!==0) { dx*=.707; dy*=.707; }
+    let nx=S.px+dx, ny=S.py+dy;
+    const rm=curRoom(), hw=4, hh=2;
+
+    // Clamp to walls unless door is present
+    if (nx-hw<PLAY_L && !inDoorLane('left',nx,ny,rm))   nx=PLAY_L+hw;
+    if (nx+hw>PLAY_R && !inDoorLane('right',nx,ny,rm))  nx=PLAY_R-hw;
+    if (ny-hh<PLAY_T && !inDoorLane('top',nx,ny,rm))    ny=PLAY_T+hh;
+    if (ny+hh>PLAY_B && !inDoorLane('bottom',nx,ny,rm)) ny=PLAY_B-hh;
+
+    S.px=nx; S.py=ny;
+
+    // Door triggers
+    for (const d of rm.doors) {
+      const z=doorZone(d.wall); let hit=false;
+      switch(d.wall) {
+        case 'top':    hit=S.py<PLAY_T-2 && S.px>z.x && S.px<z.x+z.w; break;
+        case 'bottom': hit=S.py>PLAY_B+2 && S.px>z.x && S.px<z.x+z.w; break;
+        case 'left':   hit=S.px<PLAY_L-2 && S.py>z.y && S.py<z.y+z.h; break;
+        case 'right':  hit=S.px>PLAY_R+2 && S.py>z.y && S.py<z.y+z.h; break;
+      }
+      if (hit) {
+        if (isDoorLocked(d)) {
+          if (S.keyCount > 0) {
+            S.keyCount--;
+            S.openedDoors[doorPair(S.room, d.target)] = true;
+            sfxUnlock();
+          } else {
+            S.blocked = 1;
+            sfxBlocked();
+            switch(d.wall) {
+              case 'top': S.py=PLAY_T+4; break; case 'bottom': S.py=PLAY_B-4; break;
+              case 'left': S.px=PLAY_L+4; break; case 'right': S.px=PLAY_R-4; break;
+            }
+            return;
+          }
+        }
+        startTrans(d.target, d.wall); return;
+      }
+    }
+  }
+
+  // Walk animation
+  if (S.moving) { S.aTimer++; if (S.aTimer>=8) { S.aTimer=0; S.aFrame=(S.aFrame+1)%2; } }
+  else { S.aFrame=0; S.aTimer=0; }
+}
+
+function startTrans(targetId, exitWall) {
+  S.trans=true; S.tPhase='out'; S.fadeA=0;
+  S.nextRoom=targetId; S.nextWall=exitWall;
+  S.steps++; document.getElementById('step-display').textContent='STEPS: '+S.steps;
+}
+
+function updateTrans() {
+  if (S.tPhase==='out') {
+    S.fadeA+=.06;
+    if (S.fadeA>=1) {
+      S.fadeA=1; S.room=S.nextRoom;
+      const sp=spawnPos(OPP[S.nextWall]);
+      S.px=sp.x; S.py=sp.y; S.dir=sp.dir;
+      S.tPhase='in'; updateUI();
+      if (audioCtx) { shiftDrone(curRoom().type); }
+      // Check for death room
+      if (curRoom().isDeath) {
+        S.tPhase='in'; // let it fade in first so player sees the room
+      }
+    }
+  } else {
+    S.fadeA-=.05;
+    if (S.fadeA<=0) {
+      S.fadeA=0; S.trans=false;
+      // Trigger death after fade-in completes
+      if (curRoom().isDeath && !S.dead) {
+        S.dead=true; S.deathTimer=0;
+        sfxDeath();
+        // Stop melody
+        if (melodyTimeout) clearTimeout(melodyTimeout);
+      }
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════
+//  RENDER
+// ═══════════════════════════════════════════════
+function render() {
+  if (!S.started) { ctx.fillStyle='#000'; ctx.fillRect(0,0,GW,GH); return; }
+  ctx.imageSmoothingEnabled = false;
+  const rm=curRoom(), th=curTheme();
+
+  drawFloor(th);
+  drawFloorNum(rm, th);
+  drawKeys(rm);
+  drawDecor(th);
+  drawWalls(rm, th);
+  drawDoors(rm, th);
+  drawChar();
+  drawAmbient(th);
+  drawVignette();
+  drawKeyUI();
+  drawFade();
+  drawDeath();
+}
+
+function drawFloor(th) {
+  for (let ty=WT; ty<ROWS-WB; ty++)
+    for (let tx=WL; tx<COLS-WR; tx++) {
+      ctx.fillStyle = (tx+ty)%2===0 ? th.floor1 : th.floor2;
+      ctx.fillRect(tx*TILE, ty*TILE, TILE, TILE);
+    }
+}
+
+function drawFloorNum(rm, th) {
+  const s=String(rm.num), scale=4;
+  const fw=5, fh=7, gap=scale;
+  const tw = s.length*(fw*scale+gap)-gap;
+  const x=Math.floor(GW/2-tw/2), y=Math.floor((PLAY_T+PLAY_B)/2-fh*scale/2);
+  drawDigits(ctx, s, x, y, scale, th.numColor);
+}
+
+function drawDecor(th) { ctx.save(); th.decor(ctx); ctx.restore(); }
+
+function drawWalls(rm, th) {
+  const dw = rm.doors.map(d=>d.wall);
+  const cx=GW/2, cy=(PLAY_T+PLAY_B)/2, hp=DOOR_PX/2;
+
+  // Top wall (2 tiles: back row + face row)
+  for (let tx=0; tx<COLS; tx++) {
+    const px=tx*TILE;
+    const isDoor = dw.includes('top') && px+TILE>cx-hp && px<cx+hp;
+    if (!isDoor) {
+      ctx.fillStyle=th.wallTop;  ctx.fillRect(px, 0, TILE, TILE);
+      ctx.fillStyle=th.wallFace; ctx.fillRect(px, TILE, TILE, TILE);
+      ctx.fillStyle='rgba(255,255,255,0.015)'; ctx.fillRect(px, TILE, TILE, 1);
+    }
+  }
+  // Bottom wall
+  for (let tx=0; tx<COLS; tx++) {
+    const px=tx*TILE;
+    const isDoor = dw.includes('bottom') && px+TILE>cx-hp && px<cx+hp;
+    if (!isDoor) { ctx.fillStyle=th.wallMain; ctx.fillRect(px,(ROWS-1)*TILE,TILE,TILE); }
+  }
+  // Left wall
+  for (let ty=0; ty<ROWS; ty++) {
+    const py=ty*TILE;
+    const isDoor = dw.includes('left') && py+TILE>cy-hp && py<cy+hp;
+    if (!isDoor) { ctx.fillStyle=th.wallMain; ctx.fillRect(0,py,TILE,TILE); }
+  }
+  // Right wall
+  for (let ty=0; ty<ROWS; ty++) {
+    const py=ty*TILE;
+    const isDoor = dw.includes('right') && py+TILE>cy-hp && py<cy+hp;
+    if (!isDoor) { ctx.fillStyle=th.wallMain; ctx.fillRect((COLS-1)*TILE,py,TILE,TILE); }
+  }
+}
+
+function drawDoors(rm, th) {
+  for (const d of rm.doors) {
+    const z=doorZone(d.wall);
+    const target=roomMap[d.target];
+
+    // Dark opening
+    const locked = isDoorLocked(d);
+    ctx.fillStyle = locked ? '#0a0406' : '#050405';
+    ctx.fillRect(z.x,z.y,z.w,z.h);
+
+    // Frame edges
+    ctx.fillStyle = locked ? '#5a2020' : th.doorFrame;
+    if (d.wall==='top'||d.wall==='bottom') {
+      ctx.fillRect(z.x-2,z.y,2,z.h); ctx.fillRect(z.x+z.w,z.y,2,z.h);
+    } else {
+      ctx.fillRect(z.x,z.y-2,z.w,2); ctx.fillRect(z.x,z.y+z.h,z.w,2);
+    }
+
+    // Lock bars on locked doors
+    if (locked) {
+      ctx.fillStyle = '#4a1818';
+      if (d.wall==='top'||d.wall==='bottom') {
+        for (let by=z.y+3; by<z.y+z.h-2; by+=4) ctx.fillRect(z.x+2,by,z.w-4,1);
+        ctx.fillRect(z.x+z.w/2-1,z.y,2,z.h); // vertical bar
+      } else {
+        for (let bx=z.x+2; bx<z.x+z.w-1; bx+=4) ctx.fillRect(bx,z.y+3,1,z.h-6);
+        ctx.fillRect(z.x,z.y+z.h/2-1,z.w,2); // horizontal bar
+      }
+    }
+
+    // Door number (plaque)
+    const ns=String(target.num), scale=2;
+    const tw=ns.length*(5*scale+scale)-scale, tth=7*scale;
+    let nx, ny;
+    switch(d.wall) {
+      case 'top':    nx=z.x+z.w/2-tw/2; ny=z.y+z.h-tth-3; break;
+      case 'bottom': nx=z.x+z.w/2-tw/2; ny=z.y+2; break;
+      case 'left':   nx=z.x+z.w-tw-2;   ny=z.y+z.h/2-tth/2; break;
+      case 'right':  nx=z.x+2;           ny=z.y+z.h/2-tth/2; break;
+    }
+    // Plaque background
+    ctx.fillStyle='rgba(20,18,14,0.7)';
+    ctx.fillRect(Math.floor(nx)-2, Math.floor(ny)-2, tw+4, tth+4);
+    // Number
+    drawDigits(ctx, ns, Math.floor(nx), Math.floor(ny), scale, '#8a7a5a');
+  }
+}
+
+function drawKeys(rm) {
+  if (!rm.hasKey || S.pickedKeys[rm.id]) return;
+  const kx=Math.floor(KEY_POS.x), ky=Math.floor(KEY_POS.y + Math.sin(S.time*3)*2);
+
+  // Glow
+  ctx.globalAlpha=0.15 + Math.sin(S.time*3)*0.05;
+  ctx.fillStyle='#e0c050';
+  ctx.beginPath(); ctx.arc(kx+2,ky,8,0,Math.PI*2); ctx.fill();
+  ctx.globalAlpha=1;
+
+  // Key shape (pixel art)
+  ctx.fillStyle='#e0c050';
+  // Handle ring
+  ctx.fillRect(kx-4,ky-2,5,1); ctx.fillRect(kx-5,ky-1,1,3);
+  ctx.fillRect(kx+1,ky-1,1,3); ctx.fillRect(kx-4,ky+2,5,1);
+  ctx.fillStyle='#0a0810'; ctx.fillRect(kx-3,ky,2,1); // hole
+  // Shaft
+  ctx.fillStyle='#d4a830';
+  ctx.fillRect(kx+2,ky,5,1); ctx.fillRect(kx+2,ky-1,5,1);
+  // Teeth
+  ctx.fillStyle='#c09020';
+  ctx.fillRect(kx+5,ky+1,1,2); ctx.fillRect(kx+7,ky+1,1,1);
+}
+
+function drawKeyUI() {
+  if (S.keyCount <= 0 && Object.keys(S.pickedKeys).length === 0) return;
+  const ux=8, uy=GH-12;
+  // Mini key icon
+  ctx.fillStyle='#d4a830';
+  ctx.fillRect(ux,uy,3,1); ctx.fillRect(ux+3,uy-1,4,1); ctx.fillRect(ux+3,uy,4,1);
+  ctx.fillRect(ux+5,uy+1,1,1); ctx.fillRect(ux+7,uy+1,1,1);
+  // Count
+  if (S.keyCount > 0) drawDigits(ctx, String(S.keyCount), ux+11, uy-3, 1, '#d4a830');
+}
+
+function drawChar() {
+  // Shadow
+  ctx.fillStyle='rgba(0,0,0,0.25)';
+  ctx.beginPath(); ctx.ellipse(Math.floor(S.px),Math.floor(S.py)+2,5,2,0,0,Math.PI*2); ctx.fill();
+
+  // Sprite
+  const fi = S.moving ? (S.aFrame+1) : 0;
+  const key = S.dir + fi;
+  const img = spriteImg[key];
+  if (img) ctx.drawImage(img, Math.floor(S.px-SP_W/2), Math.floor(S.py-SP_H+4));
+}
+
+function drawAmbient(th) {
+  if (!th.ambient) return;
+  for (const l of th.ambient) {
+    const g=ctx.createRadialGradient(GW*l.x,GH*l.y,0,GW*l.x,GH*l.y,l.r);
+    g.addColorStop(0,l.c); g.addColorStop(1,'transparent');
+    ctx.fillStyle=g; ctx.fillRect(0,0,GW,GH);
+  }
+}
+
+function drawVignette() {
+  const g=ctx.createRadialGradient(GW/2,GH/2,GW*.28,GW/2,GH/2,GW*.72);
+  g.addColorStop(0,'transparent'); g.addColorStop(1,'rgba(0,0,0,0.45)');
+  ctx.fillStyle=g; ctx.fillRect(0,0,GW,GH);
+}
+
+function drawFade() {
+  if (S.fadeA>0) { ctx.fillStyle=`rgba(0,0,0,${S.fadeA})`; ctx.fillRect(0,0,GW,GH); }
+}
+
+function drawDeath() {
+  if (!S.dead) return;
+  const t = S.deathTimer;
+
+  // Red vignette fading in
+  const a = Math.min(t * 0.8, 0.7);
+  const g = ctx.createRadialGradient(GW/2,GH/2,20,GW/2,GH/2,GW*0.6);
+  g.addColorStop(0, `rgba(80,0,0,${a*0.3})`);
+  g.addColorStop(1, `rgba(0,0,0,${a})`);
+  ctx.fillStyle = g;
+  ctx.fillRect(0,0,GW,GH);
+
+  // "GAME OVER" text after 1.5 seconds
+  if (t > 1.5) {
+    const textA = Math.min((t - 1.5) * 1.5, 1);
+    // Draw large pixel text "GAME OVER" using the digit font idea but as rectangles
+    ctx.fillStyle = `rgba(180,30,30,${textA})`;
+    ctx.font = '16px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('GAME OVER', GW/2, GH/2 - 10);
+
+    // "Press R to restart" after 3 seconds
+    if (t > 3) {
+      const rA = Math.min((t - 3), 1) * (0.4 + Math.sin(t*3)*0.15);
+      ctx.fillStyle = `rgba(160,140,120,${rA})`;
+      ctx.font = '8px monospace';
+      ctx.fillText('PRESS R TO RESTART', GW/2, GH/2 + 12);
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════
+//  UI + GAME LOOP
+// ═══════════════════════════════════════════════
+function updateUI() { document.getElementById('room-name').textContent=curRoom().title; }
+updateUI();
+
+(function loop() { update(); render(); requestAnimationFrame(loop); })();
+
+})();
+</script>
+</body>
+</html>
