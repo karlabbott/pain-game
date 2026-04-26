@@ -1786,29 +1786,33 @@
     },
     {
       "id": "death-1",
+      "num": 77,
       "type": "death",
-      "title": "The Abyss 1",
+      "title": "The Abyss",
       "isDeath": true,
       "doors": []
     },
     {
       "id": "death-2",
+      "num": 78,
       "type": "death",
-      "title": "The Abyss 2",
+      "title": "The Void",
       "isDeath": true,
       "doors": []
     },
     {
       "id": "death-3",
+      "num": 79,
       "type": "death",
-      "title": "The Abyss 3",
+      "title": "The Chasm",
       "isDeath": true,
       "doors": []
     },
     {
       "id": "death-4",
+      "num": 80,
       "type": "death",
-      "title": "The Abyss 4",
+      "title": "The End",
       "isDeath": true,
       "doors": []
     },
