@@ -40,13 +40,33 @@
     color: rgba(160,140,110,0.25); z-index: 5; pointer-events: none;
   }
   @keyframes pulse { 0%,100% { opacity: 0.4; } 50% { opacity: 0.7; } }
+  #map-selector {
+    margin-top: 30px; display: flex; flex-direction: column; align-items: center; gap: 8px;
+  }
+  .map-btn {
+    font-family: 'Cinzel', serif; font-size: 14px; letter-spacing: 3px;
+    color: rgba(200,180,140,0.6); background: none; border: 1px solid rgba(200,180,140,0.2);
+    padding: 8px 24px; cursor: pointer; transition: all 0.3s ease; text-transform: uppercase;
+  }
+  .map-btn:hover {
+    color: rgba(255,240,200,0.9); border-color: rgba(255,240,200,0.5);
+    box-shadow: 0 0 20px rgba(200,160,60,0.1);
+  }
+  .map-btn.selected {
+    color: rgba(255,240,200,0.9); border-color: rgba(255,240,200,0.6);
+  }
+  #map-loading {
+    font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 2px;
+    color: rgba(160,140,110,0.4); margin-top: 10px;
+  }
 </style>
 </head>
 <body>
 
 <div id="title-screen">
   <h1>PAIN</h1>
-  <p>Click or press any key to enter</p>
+  <div id="map-selector"><div id="map-loading">Loading maps...</div></div>
+  <p>Select a map to begin</p>
 </div>
 <canvas id="game"></canvas>
 <div id="room-name"></div>
@@ -469,116 +489,46 @@ const THEMES = {
 };
 
 // ═══════════════════════════════════════════════
-//  MAZE DATA
-//  Connections are bidirectional on matching walls
-//  (exit left = enter right in target)
+//  MAP LOADER — loads maze data from JSON files
 // ═══════════════════════════════════════════════
-const ROOMS = [
-  { id:'the-pit', num:24, type:'death', title:'The Pit', isDeath:true,
-    doors:[] },
-  { id:'freedom', num:51, type:'outside', title:'Freedom', isWin:true,
-    doors:[{wall:'top',target:'room-1'}] },
-  { id:'room-1', num:1, type:'stone-hall', title:'The Entrance',
-    doors:[{wall:'top',target:'the-pit'},{wall:'right',target:'room-20'},{wall:'bottom',target:'room-26'},{wall:'left',target:'room-40'},{wall:'top',target:'freedom',hidden:true}] },
-  { id:'room-2', num:2, type:'stone-hall', title:'Ancient Room',
-    doors:[{wall:'left',target:'the-pit'},{wall:'right',target:'room-40'}] },
-  { id:'room-3', num:3, type:'stone-hall', title:'Stone Vault',
-    doors:[{wall:'left',target:'room-5'},{wall:'right',target:'room-7'},{wall:'bottom',target:'room-18'}] },
-  { id:'room-4', num:4, type:'hallway', title:'Long Corridor',
-    doors:[{wall:'top',target:'the-pit'},{wall:'top',target:'room-1',locked:true},{wall:'right',target:'room-15'},{wall:'right',target:'room-49'},{wall:'bottom',target:'room-5'},{wall:'left',target:'room-48'},{wall:'left',target:'room-33'}] },
-  { id:'room-5', num:5, type:'crawlspace', title:'Tight Space',
-    doors:[{wall:'left',target:'the-pit'},{wall:'right',target:'room-40'},{wall:'bottom',target:'room-6'}] },
-  { id:'room-6', num:6, type:'dungeon', title:'The Deep Cell',
-    doors:[{wall:'left',target:'room-40'},{wall:'right',target:'the-pit'},{wall:'bottom',target:'room-25'}] },
-  { id:'room-7', num:7, type:'courtyard', title:'Sky Room',
-    doors:[{wall:'left',target:'room-25'},{wall:'right',target:'the-pit'},{wall:'bottom',target:'room-9'}] },
-  { id:'room-8', num:8, type:'library', title:'Reading Room',
-    doors:[{wall:'top',target:'the-pit'},{wall:'right',target:'room-4'},{wall:'bottom',target:'room-40'},{wall:'left',target:'room-6'}] },
-  { id:'room-9', num:9, type:'library', title:'Old Library',
-    doors:[{wall:'top',target:'the-pit'},{wall:'right',target:'room-33'},{wall:'bottom',target:'room-22'},{wall:'left',target:'room-21'}] },
-  { id:'room-10', num:10, type:'library', title:'Dusty Study',
-    doors:[{wall:'top',target:'room-5'},{wall:'right',target:'room-19'},{wall:'bottom',target:'room-2'},{wall:'left',target:'room-11'},{wall:'top',target:'room-12'}] },
-  { id:'room-11', num:11, type:'crawlspace', title:'The Squeeze',
-    doors:[{wall:'left',target:'room-6'},{wall:'right',target:'room-40'},{wall:'bottom',target:'the-pit'}] },
-  { id:'room-12', num:12, type:'stone-hall', title:'Ancient Room',
-    doors:[{wall:'left',target:'room-10'},{wall:'right',target:'room-6'},{wall:'bottom',target:'room-1',locked:true}] },
-  { id:'room-13', num:13, type:'crawlspace', title:'Cramped Cell',
-    doors:[{wall:'left',target:'room-1',locked:true},{wall:'right',target:'room-6'},{wall:'bottom',target:'the-pit'}] },
-  { id:'room-14', num:14, type:'crawlspace', title:'The Crawl',
-    doors:[{wall:'top',target:'room-6'},{wall:'right',target:'room-40'},{wall:'bottom',target:'the-pit'},{wall:'left',target:'room-1',locked:true}] },
-  { id:'room-15', num:15, type:'living-room', title:'The Puzzle Room', hasTable:true,
-    doors:[{wall:'top',target:'room-6'},{wall:'right',target:'room-40'},{wall:'bottom',target:'the-pit'}] },
-  { id:'room-16', num:16, type:'stone-hall', title:'Gray Hall',
-    doors:[{wall:'left',target:'room-14'},{wall:'right',target:'room-6'},{wall:'bottom',target:'room-19'}] },
-  { id:'room-17', num:17, type:'living-room', title:'The Secret Passage',
-    doors:[{wall:'left',target:'room-3'},{wall:'right',target:'room-47'},{wall:'bottom',target:'room-45'}] },
-  { id:'room-18', num:18, type:'hallway', title:'Dim Hallway',
-    doors:[{wall:'left',target:'room-6'},{wall:'right',target:'room-40'}] },
-  { id:'room-19', num:19, type:'stone-hall', title:'Granite Cell',
-    doors:[{wall:'top',target:'room-40'},{wall:'right',target:'the-pit'},{wall:'bottom',target:'room-6'},{wall:'left',target:'room-16'},{wall:'top',target:'room-29'}] },
-  { id:'room-20', num:20, type:'stone-hall', title:'Stone Chamber',
-    doors:[{wall:'left',target:'room-4'},{wall:'right',target:'room-16'},{wall:'bottom',target:'room-18'}] },
-  { id:'room-21', num:21, type:'stone-hall', title:'Gray Hall',
-    doors:[{wall:'left',target:'room-14'},{wall:'right',target:'room-6'},{wall:'bottom',target:'room-1',locked:true}] },
-  { id:'room-22', num:22, type:'library', title:'Archive',
-    doors:[{wall:'left',target:'room-18'},{wall:'right',target:'room-49'},{wall:'bottom',target:'room-8'}] },
-  { id:'room-23', num:23, type:'library', title:'Reading Room',
-    doors:[{wall:'bottom',target:'room-21'}] },
-  { id:'room-25', num:25, type:'living-room', title:'Abandoned Room',
-    doors:[{wall:'bottom',target:'room-6'}] },
-  { id:'room-26', num:26, type:'living-room', title:'Old Quarter',
-    doors:[{wall:'bottom',target:'room-1',locked:true}] },
-  { id:'room-27', num:27, type:'stone-hall', title:'Ancient Room',
-    doors:[{wall:'top',target:'the-pit'},{wall:'right',target:'room-34'},{wall:'bottom',target:'room-23'},{wall:'left',target:'room-28'},{wall:'top',target:'room-31'}] },
-  { id:'room-28', num:28, type:'living-room', title:'Quiet Room',
-    doors:[{wall:'bottom',target:'room-27'}] },
-  { id:'room-29', num:29, type:'library', title:'Old Library',
-    doors:[{wall:'bottom',target:'room-28'}] },
-  { id:'room-30', num:30, type:'crawlspace', title:'Tight Space',
-    doors:[{wall:'left',target:'room-45'},{wall:'right',target:'the-pit'}] },
-  { id:'room-31', num:31, type:'crawlspace', title:'The Squeeze',
-    doors:[{wall:'left',target:'room-6'},{wall:'right',target:'the-pit'},{wall:'bottom',target:'room-32'}] },
-  { id:'room-32', num:32, type:'crawlspace', title:'Low Passage',
-    doors:[{wall:'left',target:'the-pit'},{wall:'right',target:'room-6'}] },
-  { id:'room-33', num:33, type:'living-room', title:'Quiet Room',
-    doors:[{wall:'left',target:'room-32'},{wall:'right',target:'room-35'}] },
-  { id:'room-34', num:34, type:'hallway', title:'The Tunnel',
-    doors:[{wall:'left',target:'room-5'},{wall:'right',target:'room-6'},{wall:'bottom',target:'room-42'}] },
-  { id:'room-35', num:35, type:'library', title:'Dusty Study',
-    doors:[{wall:'top',target:'room-1',locked:true},{wall:'right',target:'room-2'},{wall:'bottom',target:'room-3'},{wall:'left',target:'room-38'}] },
-  { id:'room-36', num:36, type:'hallway', title:'Dark Corridor',
-    doors:[{wall:'bottom',target:'room-40'}] },
-  { id:'room-37', num:37, type:'living-room', title:'Worn Chamber',
-    doors:[{wall:'left',target:'room-50'},{wall:'right',target:'room-9'},{wall:'bottom',target:'room-49'}] },
-  { id:'room-38', num:38, type:'courtyard', title:'Moonlit Court',
-    doors:[{wall:'bottom',target:'room-36'}] },
-  { id:'room-39', num:39, type:'stone-hall', title:'Granite Cell',
-    doors:[{wall:'left',target:'room-40'},{wall:'right',target:'room-6'}] },
-  { id:'room-40', num:40, type:'dungeon', title:'The Dark Prison',
-    doors:[{wall:'left',target:'room-6'},{wall:'right',target:'the-pit'}] },
-  { id:'room-41', num:41, type:'library', title:'Book Room',
-    doors:[{wall:'left',target:'room-40'},{wall:'right',target:'room-6'}] },
-  { id:'room-42', num:42, type:'crawlspace', title:'Low Passage',
-    doors:[{wall:'left',target:'room-37'},{wall:'right',target:'room-5'}] },
-  { id:'room-43', num:43, type:'hallway', title:'Dim Hallway',
-    doors:[{wall:'left',target:'room-2'},{wall:'right',target:'room-1',locked:true}] },
-  { id:'room-44', num:44, type:'courtyard', title:'The Clearing',
-    doors:[{wall:'left',target:'room-6'},{wall:'right',target:'room-41'}] },
-  { id:'room-45', num:45, type:'courtyard', title:'Open Court',
-    doors:[{wall:'top',target:'room-44'},{wall:'right',target:'room-1',locked:true},{wall:'bottom',target:'room-5'},{wall:'left',target:'room-30'}] },
-  { id:'room-46', num:46, type:'library', title:'Book Room',
-    doors:[{wall:'left',target:'the-pit'},{wall:'right',target:'room-1',locked:true},{wall:'bottom',target:'room-6'}] },
-  { id:'room-47', num:47, type:'library', title:'Archive',
-    doors:[{wall:'left',target:'room-6'},{wall:'right',target:'room-27'},{wall:'bottom',target:'room-8'}] },
-  { id:'room-48', num:48, type:'courtyard', title:'Moonlit Court',
-    doors:[{wall:'left',target:'room-1',locked:true},{wall:'right',target:'the-pit'}] },
-  { id:'room-49', num:49, type:'stone-hall', title:'Granite Cell',
-    doors:[{wall:'left',target:'room-8'},{wall:'right',target:'room-10'}] },
-  { id:'room-50', num:50, type:'stone-hall', title:'The Hidden Chamber', hasKey:true,
-    doors:[{wall:'top',target:'room-2'},{wall:'right',target:'room-3'},{wall:'bottom',target:'room-5'},{wall:'left',target:'room-40'}] },
-];
+let ROOMS = [];
+let roomMap = {};
+let mapConfig = {};
 
-const roomMap = {}; ROOMS.forEach(r => roomMap[r.id] = r);
+async function loadMap(mapFile) {
+  const resp = await fetch('maps/' + mapFile);
+  const data = await resp.json();
+  mapConfig = data;
+  ROOMS = data.rooms;
+  roomMap = {};
+  ROOMS.forEach(r => roomMap[r.id] = r);
+
+  // Update title screen with map name
+  const titleEl = document.querySelector('#title-screen h1');
+  const subEl = document.querySelector('#title-screen p');
+  if (titleEl) titleEl.textContent = data.name || 'THE MAZE';
+  if (subEl) subEl.textContent = data.subtitle || 'Click or press any key to enter';
+  document.title = data.name || 'THE MAZE';
+
+  // Reset start room
+  S.room = data.startRoom || ROOMS[0].id;
+
+  // Recompute locked door pairs
+  recomputeLockedPairs();
+}
+
+function recomputeLockedPairs() {
+  const pairs = new Set();
+  ROOMS.forEach(rm => rm.doors.forEach(d => { if(d.locked) pairs.add(doorPair(rm.id, d.target)); }));
+  S._totalLockedPairs = pairs.size;
+}
+
+async function loadMapList() {
+  try {
+    const resp = await fetch('maps/index.json');
+    return await resp.json();
+  } catch(e) { return ['pain.json']; }
+}
 
 // ═══════════════════════════════════════════════
 //  GAME STATE
@@ -617,25 +567,37 @@ window.addEventListener('resize', resize); resize();
 // ═══════════════════════════════════════════════
 //  INPUT
 // ═══════════════════════════════════════════════
+let mapLoaded = false;
+
 window.addEventListener('keydown', e => {
   if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)) e.preventDefault();
-  if (!S.started) { startGame(); return; }
+  if (!S.started) return; // must click a map button to start
   if (S.dead && (e.key==='r'||e.key==='R')) { restartGame(); return; }
   if (S.won && (e.key==='r'||e.key==='R')) { restartGame(); return; }
   S.keys[e.key]=true;
 });
 window.addEventListener('keyup', e => { S.keys[e.key]=false; });
-document.getElementById('title-screen').addEventListener('click', () => { if (!S.started) startGame(); });
+
+async function selectMap(mapFile) {
+  const loadingEl = document.getElementById('map-loading');
+  if (loadingEl) loadingEl.textContent = 'Loading...';
+  await loadMap(mapFile);
+  mapLoaded = true;
+  startGame();
+}
+
 function startGame() {
   S.started=true;
   S.intro=true; S.introTimer=0; S.introPhase='outside';
+  S.room = mapConfig.startRoom || 'room-1';
   document.getElementById('title-screen').classList.add('hidden');
   initAudio();
   if (audioCtx) shiftDrone('outside');
 }
 
 function restartGame() {
-  S.room='room-1'; S.px=GW/2; S.py=(PLAY_T+PLAY_B)/2+10;
+  S.room = mapConfig.startRoom || 'room-1';
+  S.px=GW/2; S.py=(PLAY_T+PLAY_B)/2+10;
   S.dir='down'; S.moving=false; S.aFrame=0; S.aTimer=0;
   S.fadeA=0; S.trans=false; S.tPhase=null;
   S.steps=0; S.keyCount=0; S.pickedKeys={}; S.openedDoors={};
@@ -643,11 +605,43 @@ function restartGame() {
   S.knockX=0; S.knockY=0; S.flash=0;
   S.won=false; S.winTimer=0;
   S.tableTimer=0; S.tableTouching=false;
+  recomputeLockedPairs();
   document.getElementById('step-display').textContent='STEPS: 0';
   updateUI();
-  // Restart melody
   if (audioCtx) { startRoomMusic(); shiftDrone('stone-hall'); }
 }
+
+// Build map selector on load
+(async function initMapSelector() {
+  const maps = await loadMapList();
+  const selector = document.getElementById('map-selector');
+  selector.innerHTML = '';
+
+  for (const mapFile of maps) {
+    // Peek at map name
+    try {
+      const resp = await fetch('maps/' + mapFile);
+      const data = await resp.json();
+      const btn = document.createElement('button');
+      btn.className = 'map-btn';
+      btn.textContent = data.name || mapFile.replace('.json','');
+      btn.addEventListener('click', () => selectMap(mapFile));
+      selector.appendChild(btn);
+    } catch(e) {
+      const btn = document.createElement('button');
+      btn.className = 'map-btn';
+      btn.textContent = mapFile.replace('.json','');
+      btn.addEventListener('click', () => selectMap(mapFile));
+      selector.appendChild(btn);
+    }
+  }
+
+  // If only one map, auto-select after a moment
+  if (maps.length === 1) {
+    const btn = selector.querySelector('.map-btn');
+    if (btn) btn.classList.add('selected');
+  }
+})();
 
 // ═══════════════════════════════════════════════
 //  AUDIO — ambient drone + chiptune melody
@@ -765,126 +759,73 @@ function fadeOutDrone() {
 // D minor, ~70 seconds, square + triangle voices.
 const R = 'rest';
 const MELODY = [
-  // ── A: Main theme — establishes the dungeon ──
-  {n:0,d:.4,w:'square'},   // D
-  {n:3,d:.3,w:'square'},   // F
-  {n:5,d:.4,w:'square'},   // G
-  {n:7,d:.6,w:'square'},   // A
-  {n:3,d:.3,w:'square'},   // F
-  {n:0,d:.5,w:'square'},   // D
-  {n:-2,d:.4,w:'square'},  // C
-  {n:0,d:.7,w:'square'},   // D (hold)
-  {n:R,d:.4},
-  {n:5,d:.3,w:'square'},   // G
-  {n:7,d:.3,w:'square'},   // A
-  {n:8,d:.5,w:'square'},   // Bb
-  {n:7,d:.4,w:'square'},   // A
-  {n:5,d:.3,w:'square'},   // G
-  {n:3,d:.6,w:'square'},   // F
-  {n:0,d:.8,w:'square'},   // D (hold)
-  {n:R,d:.6},
-
-  // ── A2: Main theme variation — slightly different ending ──
-  {n:0,d:.4,w:'square'},
-  {n:3,d:.3,w:'square'},
-  {n:5,d:.4,w:'square'},
-  {n:7,d:.6,w:'square'},
-  {n:8,d:.3,w:'square'},   // Bb (higher this time)
-  {n:7,d:.4,w:'square'},   // A
-  {n:5,d:.3,w:'square'},   // G
-  {n:3,d:.5,w:'square'},   // F
-  {n:0,d:.7,w:'square'},   // D
-  {n:R,d:.3},
-  {n:-2,d:.3,w:'square'},  // C
-  {n:-4,d:.4,w:'square'},  // Bb low
-  {n:-2,d:.3,w:'square'},  // C
-  {n:0,d:.9,w:'square'},   // D (resolve)
-  {n:R,d:.7},
-
-  // ── B: Counter-melody — triangle voice, contemplative ──
-  {n:12,d:.5,w:'triangle'}, // D high
-  {n:10,d:.4,w:'triangle'}, // C high
-  {n:7,d:.5,w:'triangle'},  // A
-  {n:5,d:.6,w:'triangle'},  // G
-  {n:R,d:.3},
-  {n:7,d:.4,w:'triangle'},  // A
-  {n:8,d:.3,w:'triangle'},  // Bb
-  {n:7,d:.4,w:'triangle'},  // A
-  {n:5,d:.5,w:'triangle'},  // G
-  {n:3,d:.7,w:'triangle'},  // F (hold)
-  {n:R,d:.3},
-  {n:5,d:.3,w:'triangle'},  // G
-  {n:3,d:.3,w:'triangle'},  // F
-  {n:0,d:.4,w:'triangle'},  // D
-  {n:-2,d:.4,w:'triangle'}, // C
-  {n:0,d:.9,w:'triangle'},  // D (resolve)
-  {n:R,d:.6},
-
-  // ── C: Tension — faster, chromatic, building ──
-  {n:0,d:.25,w:'square'},
-  {n:1,d:.25,w:'square'},   // D#/Eb (chromatic!)
-  {n:0,d:.25,w:'square'},
-  {n:-2,d:.35,w:'square'},  // C
+  // ── A: Frantic opening — fast, aggressive ──
+  {n:0,d:.18,w:'square'},{n:3,d:.15,w:'square'},{n:5,d:.15,w:'square'},
+  {n:7,d:.18,w:'square'},{n:8,d:.12,w:'square'},{n:7,d:.12,w:'square'},
+  {n:5,d:.15,w:'square'},{n:3,d:.12,w:'square'},{n:0,d:.2,w:'square'},
+  {n:R,d:.1},
+  {n:0,d:.12,w:'square'},{n:1,d:.12,w:'square'},{n:0,d:.12,w:'square'},
+  {n:-2,d:.15,w:'square'},{n:0,d:.12,w:'square'},{n:3,d:.12,w:'square'},
+  {n:5,d:.15,w:'square'},{n:8,d:.12,w:'square'},{n:7,d:.18,w:'square'},
+  {n:5,d:.12,w:'square'},{n:3,d:.15,w:'square'},{n:0,d:.25,w:'square'},
   {n:R,d:.15},
-  {n:0,d:.25,w:'square'},
-  {n:3,d:.25,w:'square'},   // F
-  {n:5,d:.25,w:'square'},   // G
-  {n:7,d:.3,w:'square'},    // A
-  {n:8,d:.25,w:'square'},   // Bb
-  {n:10,d:.4,w:'square'},   // C high
-  {n:R,d:.2},
-  {n:12,d:.3,w:'square'},   // D high
-  {n:10,d:.25,w:'square'},  // C high
-  {n:8,d:.25,w:'square'},   // Bb
-  {n:7,d:.3,w:'square'},    // A
-  {n:5,d:.25,w:'square'},   // G
-  {n:3,d:.35,w:'square'},   // F
-  {n:0,d:.3,w:'square'},    // D
-  {n:-2,d:.3,w:'square'},   // C
-  {n:0,d:.7,w:'square'},    // D (hold)
-  {n:R,d:.4},
 
-  // ── C2: Tension peak — octave jumps ──
-  {n:0,d:.3,w:'square'},    // D
-  {n:12,d:.3,w:'square'},   // D high
-  {n:0,d:.3,w:'square'},    // D
+  // ── A2: Repeat with chromatic madness ──
+  {n:0,d:.15,w:'square'},{n:1,d:.1,w:'square'},{n:3,d:.12,w:'square'},
+  {n:5,d:.12,w:'square'},{n:6,d:.1,w:'square'},{n:7,d:.15,w:'square'},
+  {n:8,d:.1,w:'square'},{n:10,d:.12,w:'square'},{n:8,d:.1,w:'square'},
+  {n:7,d:.12,w:'square'},{n:5,d:.1,w:'square'},{n:3,d:.15,w:'square'},
+  {n:R,d:.1},
+  {n:0,d:.12,w:'square'},{n:-2,d:.12,w:'square'},{n:0,d:.1,w:'square'},
+  {n:3,d:.1,w:'square'},{n:5,d:.12,w:'square'},{n:7,d:.1,w:'square'},
+  {n:8,d:.15,w:'square'},{n:7,d:.1,w:'square'},{n:5,d:.12,w:'square'},
+  {n:3,d:.1,w:'square'},{n:0,d:.3,w:'square'},
   {n:R,d:.2},
-  {n:3,d:.3,w:'square'},    // F
-  {n:15,d:.3,w:'square'},   // F high
-  {n:3,d:.3,w:'square'},    // F
+
+  // ── B: Manic sawtooth descent ──
+  {n:12,d:.12,w:'sawtooth'},{n:11,d:.1,w:'sawtooth'},{n:10,d:.1,w:'sawtooth'},
+  {n:8,d:.12,w:'sawtooth'},{n:7,d:.1,w:'sawtooth'},{n:5,d:.12,w:'sawtooth'},
+  {n:3,d:.1,w:'sawtooth'},{n:0,d:.15,w:'sawtooth'},
+  {n:R,d:.08},
+  {n:12,d:.1,w:'sawtooth'},{n:10,d:.1,w:'sawtooth'},{n:8,d:.1,w:'sawtooth'},
+  {n:7,d:.12,w:'sawtooth'},{n:5,d:.1,w:'sawtooth'},{n:3,d:.1,w:'sawtooth'},
+  {n:1,d:.12,w:'sawtooth'},{n:0,d:.15,w:'sawtooth'},{n:-2,d:.12,w:'sawtooth'},
+  {n:-5,d:.2,w:'sawtooth'},
+  {n:R,d:.15},
+
+  // ── C: Octave stabs — panic ──
+  {n:0,d:.1,w:'square'},{n:12,d:.1,w:'square'},{n:0,d:.1,w:'square'},
+  {n:12,d:.1,w:'square'},{n:R,d:.08},
+  {n:3,d:.1,w:'square'},{n:15,d:.1,w:'square'},{n:3,d:.1,w:'square'},
+  {n:15,d:.1,w:'square'},{n:R,d:.08},
+  {n:5,d:.1,w:'square'},{n:17,d:.1,w:'square'},{n:5,d:.1,w:'square'},
+  {n:17,d:.1,w:'square'},{n:R,d:.08},
+  {n:7,d:.1,w:'square'},{n:19,d:.1,w:'square'},{n:7,d:.1,w:'square'},
+  {n:R,d:.1},
+  {n:8,d:.12,w:'square'},{n:7,d:.1,w:'square'},{n:5,d:.12,w:'square'},
+  {n:3,d:.1,w:'square'},{n:0,d:.25,w:'square'},
   {n:R,d:.2},
-  {n:7,d:.4,w:'square'},    // A
-  {n:8,d:.3,w:'square'},    // Bb
-  {n:7,d:.3,w:'square'},    // A
-  {n:5,d:.3,w:'square'},    // G
-  {n:3,d:.4,w:'square'},    // F
-  {n:0,d:.8,w:'square'},    // D (big hold)
+
+  // ── C2: Relentless chromatic climb ──
+  {n:0,d:.1,w:'square'},{n:1,d:.1,w:'square'},{n:2,d:.1,w:'square'},
+  {n:3,d:.1,w:'square'},{n:4,d:.1,w:'square'},{n:5,d:.1,w:'square'},
+  {n:6,d:.1,w:'square'},{n:7,d:.1,w:'square'},{n:8,d:.1,w:'square'},
+  {n:9,d:.1,w:'square'},{n:10,d:.1,w:'square'},{n:11,d:.1,w:'square'},
+  {n:12,d:.3,w:'square'},
+  {n:R,d:.12},
+  {n:12,d:.1,w:'square'},{n:11,d:.1,w:'square'},{n:10,d:.1,w:'square'},
+  {n:8,d:.1,w:'square'},{n:7,d:.1,w:'square'},{n:5,d:.12,w:'square'},
+  {n:3,d:.1,w:'square'},{n:0,d:.3,w:'square'},
+  {n:R,d:.25},
+
+  // ── D: Brief unsettling calm before loop ──
+  {n:0,d:.3,w:'triangle'},{n:R,d:.2},
+  {n:1,d:.25,w:'triangle'},{n:0,d:.2,w:'triangle'},{n:R,d:.15},
+  {n:-2,d:.3,w:'triangle'},{n:-5,d:.4,w:'triangle'},
+  {n:R,d:.2},
+  {n:0,d:.15,w:'triangle'},{n:1,d:.12,w:'triangle'},{n:0,d:.15,w:'triangle'},
+  {n:-1,d:.12,w:'triangle'},{n:0,d:.5,w:'triangle'},
   {n:R,d:.6},
-
-  // ── D: Resolution — gentle, triangle, winding down ──
-  {n:0,d:.5,w:'triangle'},  // D
-  {n:R,d:.25},
-  {n:3,d:.5,w:'triangle'},  // F
-  {n:R,d:.25},
-  {n:5,d:.6,w:'triangle'},  // G
-  {n:3,d:.4,w:'triangle'},  // F
-  {n:0,d:.7,w:'triangle'},  // D
-  {n:R,d:.3},
-  {n:-2,d:.4,w:'triangle'}, // C
-  {n:-5,d:.5,w:'triangle'}, // A low
-  {n:-2,d:.4,w:'triangle'}, // C
-  {n:0,d:1.0,w:'triangle'}, // D (long hold)
-  {n:R,d:.4},
-
-  // ── D2: Final phrase — sparse, fading ──
-  {n:7,d:.6,w:'triangle'},  // A
-  {n:5,d:.5,w:'triangle'},  // G
-  {n:3,d:.4,w:'triangle'},  // F
-  {n:0,d:.8,w:'triangle'},  // D
-  {n:R,d:.3},
-  {n:-5,d:.5,w:'triangle'}, // A low
-  {n:0,d:1.2,w:'triangle'}, // D (final hold)
-  {n:R,d:1.5},              // long silence before loop
 ];
 
 const MELODY_BASE = 147; // D3
@@ -1138,10 +1079,8 @@ const OPP = {top:'bottom',bottom:'top',left:'right',right:'left'};
 
 // Count all locked doors in the maze (for exit gate)
 // Count unique locked door PAIRS in the maze (doorPair is bidirectional)
-const _lockedPairs = new Set();
-ROOMS.forEach(rm => rm.doors.forEach(d => { if(d.locked) _lockedPairs.add(doorPair(rm.id, d.target)); }));
-const TOTAL_LOCKED_PAIRS = _lockedPairs.size;
-function allDoorsUnlocked() { return Object.keys(S.openedDoors).length >= TOTAL_LOCKED_PAIRS; }
+// Locked pair counting is now done dynamically in recomputeLockedPairs()
+function allDoorsUnlocked() { return Object.keys(S.openedDoors).length >= (S._totalLockedPairs || 0); }
 function isDoorVisible(d) { return !d.hidden || S.keyCount > 0; }
 
 function spawnPos(fromWall) {
@@ -1207,7 +1146,7 @@ function update() {
   }
 
   // Table puzzle (room 15) — stand on table for 5 seconds to teleport to room 17
-  const TABLE_X = GW/2, TABLE_Y = (PLAY_T+PLAY_B)/2;
+  const TABLE_X = PLAY_L + 40, TABLE_Y = PLAY_B - 30;
   if (rm0.hasTable) {
     const onTable = Math.abs(S.px - TABLE_X) < 14 && Math.abs(S.py - TABLE_Y) < 10;
     if (onTable) {
@@ -1382,7 +1321,7 @@ function updateIntro() {
       // Black screen, then land in room 1
       if (t > INTRO_DUR.fall) {
         S.intro=false;
-        S.room='room-1';
+        S.room = mapConfig.startRoom || 'room-1';
         S.px=GW/2; S.py=(PLAY_T+PLAY_B)/2+10;
         S.dir='down'; S.aFrame=0; S.aTimer=0;
         updateUI();
@@ -1527,41 +1466,38 @@ function drawDecor(th) { ctx.save(); th.decor(ctx); ctx.restore(); }
 
 function drawTable(rm) {
   if (!rm.hasTable) return;
-  const tx = GW/2, ty = (PLAY_T+PLAY_B)/2;
+  const tx = PLAY_L + 40, ty = PLAY_B - 30;
 
-  // Table — wooden rectangle in center
+  // Table — wooden rectangle
   ctx.fillStyle='#3a2a18';
   ctx.fillRect(tx-14, ty-8, 28, 16);
-  // Table top highlight
   ctx.fillStyle='#4a3820';
   ctx.fillRect(tx-13, ty-7, 26, 14);
-  // Table legs (shadow underneath)
   ctx.fillStyle='#2a1e10';
   ctx.fillRect(tx-12, ty+8, 3, 3);
   ctx.fillRect(tx+9, ty+8, 3, 3);
 
-  // Upside-down "17" on the table — rotated 180 degrees
+  // Upside-down "17" on the table
   ctx.save();
   ctx.translate(tx-2, ty);
-  ctx.rotate(Math.PI); // flip upside down
+  ctx.rotate(Math.PI);
   drawDigits(ctx, '17', -5, -4, 1, '#8a7a5a');
   ctx.restore();
 
-  // Backwards "7" next to it — mirrored horizontally
+  // Backwards "7" aligned next to the 17, flipped vertically (top-to-bottom mirror)
   ctx.save();
-  ctx.translate(tx+8, ty-3);
-  ctx.scale(-1, 1); // mirror
-  drawDigits(ctx, '7', -3, 0, 1, '#6a5a4a');
+  ctx.translate(tx+8, ty);
+  ctx.scale(1, -1); // vertical flip only
+  drawDigits(ctx, '7', -3, -4, 1, '#8a7a5a');
   ctx.restore();
 
-  // Faint mysterious glow if player is near
+  // Glow when player is near
   if (S.tableTouching) {
     const pulse = 0.08 + Math.sin(S.tableTimer * 4) * 0.04;
     const prog = S.tableTimer / 5;
     ctx.fillStyle = `rgba(200,180,100,${pulse + prog * 0.15})`;
     ctx.beginPath(); ctx.ellipse(tx, ty, 18 + prog*6, 12 + prog*4, 0, 0, Math.PI*2); ctx.fill();
 
-    // Progress ring around table
     if (S.tableTimer > 0.5) {
       ctx.strokeStyle = `rgba(220,200,120,${0.3 + prog*0.4})`;
       ctx.lineWidth = 1;
@@ -1877,8 +1813,10 @@ function drawWin() {
 // ═══════════════════════════════════════════════
 //  UI + GAME LOOP
 // ═══════════════════════════════════════════════
-function updateUI() { document.getElementById('room-name').textContent=curRoom().title; }
-updateUI();
+function updateUI() {
+  const rm = curRoom();
+  document.getElementById('room-name').textContent = rm ? rm.title : '';
+}
 
 (function loop() { update(); render(); requestAnimationFrame(loop); })();
 
