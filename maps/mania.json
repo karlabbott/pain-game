@@ -1,0 +1,1829 @@
+{
+  "name": "MANIA",
+  "version": "1.0",
+  "description": "A diabolical maze of 75 rooms, 4 death pits, and one way out. Find the key, return to the start, and escape \u2014 if you can.",
+  "startRoom": "room-1",
+  "keyRoom": "room-55",
+  "winRoom": "freedom",
+  "totalRooms": 75,
+  "solutionHint": "Find the Vault of Keys (room 55), grab the master key, navigate back to The Entrance, and unlock the hidden door to Freedom.",
+  "rooms": [
+    {
+      "id": "room-1",
+      "num": 1,
+      "type": "stone-hall",
+      "title": "The Entrance",
+      "doors": [
+        {
+          "wall": "top",
+          "target": "room-2"
+        },
+        {
+          "wall": "right",
+          "target": "room-3"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-5"
+        },
+        {
+          "wall": "left",
+          "target": "room-7"
+        },
+        {
+          "wall": "top",
+          "target": "room-13"
+        },
+        {
+          "wall": "right",
+          "target": "freedom",
+          "hidden": true
+        }
+      ]
+    },
+    {
+      "id": "room-2",
+      "num": 2,
+      "type": "courtyard",
+      "title": "Flickering Foyer",
+      "doors": [
+        {
+          "wall": "top",
+          "target": "room-1",
+          "locked": true
+        },
+        {
+          "wall": "right",
+          "target": "room-4"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-8"
+        },
+        {
+          "wall": "left",
+          "target": "room-6"
+        }
+      ]
+    },
+    {
+      "id": "room-3",
+      "num": 3,
+      "type": "hallway",
+      "title": "Rat's Crossing",
+      "doors": [
+        {
+          "wall": "left",
+          "target": "room-1",
+          "locked": true
+        },
+        {
+          "wall": "right",
+          "target": "room-9"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-10"
+        }
+      ]
+    },
+    {
+      "id": "room-4",
+      "num": 4,
+      "type": "library",
+      "title": "Whispering Gallery",
+      "doors": [
+        {
+          "wall": "left",
+          "target": "room-2"
+        },
+        {
+          "wall": "right",
+          "target": "room-11"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-12"
+        }
+      ]
+    },
+    {
+      "id": "room-5",
+      "num": 5,
+      "type": "stone-hall",
+      "title": "Shattered Mirror Hall",
+      "doors": [
+        {
+          "wall": "top",
+          "target": "room-1",
+          "locked": true
+        },
+        {
+          "wall": "right",
+          "target": "room-12"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-14"
+        },
+        {
+          "wall": "left",
+          "target": "room-15"
+        }
+      ]
+    },
+    {
+      "id": "room-6",
+      "num": 6,
+      "type": "dungeon",
+      "title": "The Iron Cage",
+      "doors": [
+        {
+          "wall": "left",
+          "target": "room-2"
+        },
+        {
+          "wall": "right",
+          "target": "room-10"
+        }
+      ]
+    },
+    {
+      "id": "room-7",
+      "num": 7,
+      "type": "hallway",
+      "title": "Dusty Passage",
+      "doors": [
+        {
+          "wall": "left",
+          "target": "room-1",
+          "locked": true
+        },
+        {
+          "wall": "right",
+          "target": "room-8"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-16"
+        }
+      ]
+    },
+    {
+      "id": "room-8",
+      "num": 8,
+      "type": "living-room",
+      "title": "Cobweb Corridor",
+      "doors": [
+        {
+          "wall": "left",
+          "target": "room-2"
+        },
+        {
+          "wall": "right",
+          "target": "room-7"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-9"
+        }
+      ]
+    },
+    {
+      "id": "room-9",
+      "num": 9,
+      "type": "stone-hall",
+      "title": "Echoing Chamber",
+      "doors": [
+        {
+          "wall": "left",
+          "target": "room-3"
+        },
+        {
+          "wall": "right",
+          "target": "room-8"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-17"
+        }
+      ]
+    },
+    {
+      "id": "room-10",
+      "num": 10,
+      "type": "dungeon",
+      "title": "Broken Stairwell",
+      "doors": [
+        {
+          "wall": "left",
+          "target": "room-3"
+        },
+        {
+          "wall": "right",
+          "target": "room-6"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-18"
+        }
+      ]
+    },
+    {
+      "id": "room-11",
+      "num": 11,
+      "type": "library",
+      "title": "Forgotten Alcove",
+      "doors": [
+        {
+          "wall": "left",
+          "target": "room-4"
+        },
+        {
+          "wall": "right",
+          "target": "room-19"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-20"
+        }
+      ]
+    },
+    {
+      "id": "room-12",
+      "num": 12,
+      "type": "hallway",
+      "title": "Torch-Lit Tunnel",
+      "doors": [
+        {
+          "wall": "left",
+          "target": "room-4"
+        },
+        {
+          "wall": "right",
+          "target": "room-5"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-21"
+        }
+      ]
+    },
+    {
+      "id": "room-13",
+      "num": 13,
+      "type": "living-room",
+      "title": "The False Promise",
+      "doors": [
+        {
+          "wall": "left",
+          "target": "room-1",
+          "locked": true
+        },
+        {
+          "wall": "right",
+          "target": "room-22"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-23"
+        }
+      ]
+    },
+    {
+      "id": "room-14",
+      "num": 14,
+      "type": "stone-hall",
+      "title": "Crumbling Archway",
+      "doors": [
+        {
+          "wall": "left",
+          "target": "room-5"
+        },
+        {
+          "wall": "right",
+          "target": "room-24"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-25"
+        }
+      ]
+    },
+    {
+      "id": "room-15",
+      "num": 15,
+      "type": "courtyard",
+      "title": "Moss-Covered Landing",
+      "doors": [
+        {
+          "wall": "left",
+          "target": "room-5"
+        },
+        {
+          "wall": "right",
+          "target": "room-26"
+        }
+      ]
+    },
+    {
+      "id": "room-16",
+      "num": 16,
+      "type": "hallway",
+      "title": "The Spiral",
+      "doors": [
+        {
+          "wall": "top",
+          "target": "room-7"
+        },
+        {
+          "wall": "right",
+          "target": "room-17"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-20"
+        },
+        {
+          "wall": "left",
+          "target": "room-27"
+        }
+      ]
+    },
+    {
+      "id": "room-17",
+      "num": 17,
+      "type": "living-room",
+      "title": "Dizzying Junction",
+      "doors": [
+        {
+          "wall": "top",
+          "target": "room-9"
+        },
+        {
+          "wall": "right",
+          "target": "room-16"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-18"
+        },
+        {
+          "wall": "left",
+          "target": "room-19"
+        },
+        {
+          "wall": "top",
+          "target": "room-23"
+        },
+        {
+          "wall": "right",
+          "target": "room-28"
+        }
+      ]
+    },
+    {
+      "id": "room-18",
+      "num": 18,
+      "type": "library",
+      "title": "Hall of Echoes",
+      "doors": [
+        {
+          "wall": "left",
+          "target": "room-10"
+        },
+        {
+          "wall": "right",
+          "target": "room-17"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-29"
+        }
+      ]
+    },
+    {
+      "id": "room-19",
+      "num": 19,
+      "type": "crawlspace",
+      "title": "The Revolving Room",
+      "doors": [
+        {
+          "wall": "top",
+          "target": "room-11"
+        },
+        {
+          "wall": "right",
+          "target": "room-17"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-20"
+        },
+        {
+          "wall": "left",
+          "target": "room-30"
+        }
+      ]
+    },
+    {
+      "id": "room-20",
+      "num": 20,
+      "type": "hallway",
+      "title": "Phantom Corridor",
+      "doors": [
+        {
+          "wall": "top",
+          "target": "room-11"
+        },
+        {
+          "wall": "right",
+          "target": "room-16"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-19"
+        },
+        {
+          "wall": "left",
+          "target": "room-21"
+        }
+      ]
+    },
+    {
+      "id": "room-21",
+      "num": 21,
+      "type": "stone-hall",
+      "title": "The Maze Heart",
+      "doors": [
+        {
+          "wall": "top",
+          "target": "room-12"
+        },
+        {
+          "wall": "right",
+          "target": "room-20"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-22"
+        },
+        {
+          "wall": "left",
+          "target": "room-25"
+        },
+        {
+          "wall": "top",
+          "target": "room-31"
+        }
+      ]
+    },
+    {
+      "id": "room-22",
+      "num": 22,
+      "type": "dungeon",
+      "title": "Blind Alley",
+      "doors": [
+        {
+          "wall": "left",
+          "target": "room-13"
+        },
+        {
+          "wall": "right",
+          "target": "room-21"
+        }
+      ]
+    },
+    {
+      "id": "room-23",
+      "num": 23,
+      "type": "living-room",
+      "title": "Shifting Walls",
+      "doors": [
+        {
+          "wall": "left",
+          "target": "room-13"
+        },
+        {
+          "wall": "right",
+          "target": "room-17"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-24"
+        }
+      ]
+    },
+    {
+      "id": "room-24",
+      "num": 24,
+      "type": "library",
+      "title": "The Pendulum Room",
+      "doors": [
+        {
+          "wall": "top",
+          "target": "room-14"
+        },
+        {
+          "wall": "right",
+          "target": "room-23"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-28"
+        },
+        {
+          "wall": "left",
+          "target": "room-29"
+        }
+      ],
+      "hasTable": true,
+      "table": {
+        "holdTime": 5,
+        "target": "room-59"
+      }
+    },
+    {
+      "id": "room-25",
+      "num": 25,
+      "type": "stone-hall",
+      "title": "Crossroads of Doubt",
+      "doors": [
+        {
+          "wall": "top",
+          "target": "room-14"
+        },
+        {
+          "wall": "right",
+          "target": "room-21"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-26"
+        },
+        {
+          "wall": "left",
+          "target": "room-30"
+        },
+        {
+          "wall": "top",
+          "target": "room-32"
+        }
+      ]
+    },
+    {
+      "id": "room-26",
+      "num": 26,
+      "type": "hallway",
+      "title": "Serpent's Path",
+      "doors": [
+        {
+          "wall": "left",
+          "target": "room-15"
+        },
+        {
+          "wall": "right",
+          "target": "room-25"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-27"
+        }
+      ]
+    },
+    {
+      "id": "room-27",
+      "num": 27,
+      "type": "living-room",
+      "title": "The Winding Way",
+      "doors": [
+        {
+          "wall": "top",
+          "target": "room-16"
+        },
+        {
+          "wall": "right",
+          "target": "room-26"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-28"
+        },
+        {
+          "wall": "left",
+          "target": "room-33"
+        }
+      ]
+    },
+    {
+      "id": "room-28",
+      "num": 28,
+      "type": "library",
+      "title": "Mirrored Passage",
+      "doors": [
+        {
+          "wall": "top",
+          "target": "room-17"
+        },
+        {
+          "wall": "right",
+          "target": "room-24"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-27"
+        },
+        {
+          "wall": "left",
+          "target": "room-29"
+        },
+        {
+          "wall": "top",
+          "target": "room-34"
+        }
+      ]
+    },
+    {
+      "id": "room-29",
+      "num": 29,
+      "type": "living-room",
+      "title": "Loop of Despair",
+      "doors": [
+        {
+          "wall": "top",
+          "target": "room-18"
+        },
+        {
+          "wall": "right",
+          "target": "room-24"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-28"
+        },
+        {
+          "wall": "left",
+          "target": "room-30"
+        }
+      ]
+    },
+    {
+      "id": "room-30",
+      "num": 30,
+      "type": "stone-hall",
+      "title": "The Nexus",
+      "doors": [
+        {
+          "wall": "top",
+          "target": "room-19"
+        },
+        {
+          "wall": "right",
+          "target": "room-25"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-29"
+        },
+        {
+          "wall": "left",
+          "target": "room-35"
+        }
+      ]
+    },
+    {
+      "id": "room-31",
+      "num": 31,
+      "type": "courtyard",
+      "title": "Bone Garden",
+      "doors": [
+        {
+          "wall": "top",
+          "target": "room-21"
+        },
+        {
+          "wall": "right",
+          "target": "room-32"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-36"
+        },
+        {
+          "wall": "left",
+          "target": "death-1"
+        }
+      ]
+    },
+    {
+      "id": "room-32",
+      "num": 32,
+      "type": "crawlspace",
+      "title": "The Acid Pool",
+      "doors": [
+        {
+          "wall": "top",
+          "target": "room-25"
+        },
+        {
+          "wall": "right",
+          "target": "room-31"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-33"
+        },
+        {
+          "wall": "left",
+          "target": "room-37"
+        },
+        {
+          "wall": "top",
+          "target": "death-1"
+        }
+      ]
+    },
+    {
+      "id": "room-33",
+      "num": 33,
+      "type": "dungeon",
+      "title": "Rusted Gate",
+      "doors": [
+        {
+          "wall": "top",
+          "target": "room-27"
+        },
+        {
+          "wall": "right",
+          "target": "room-32"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-34"
+        },
+        {
+          "wall": "left",
+          "target": "room-38"
+        }
+      ]
+    },
+    {
+      "id": "room-34",
+      "num": 34,
+      "type": "hallway",
+      "title": "Screaming Corridor",
+      "doors": [
+        {
+          "wall": "top",
+          "target": "room-28"
+        },
+        {
+          "wall": "right",
+          "target": "room-33"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-39"
+        },
+        {
+          "wall": "left",
+          "target": "death-2"
+        }
+      ]
+    },
+    {
+      "id": "room-35",
+      "num": 35,
+      "type": "stone-hall",
+      "title": "The Pit's Edge",
+      "doors": [
+        {
+          "wall": "top",
+          "target": "room-30"
+        },
+        {
+          "wall": "right",
+          "target": "room-36"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-40"
+        },
+        {
+          "wall": "left",
+          "target": "room-41"
+        }
+      ]
+    },
+    {
+      "id": "room-36",
+      "num": 36,
+      "type": "living-room",
+      "title": "Blood-Stained Floor",
+      "doors": [
+        {
+          "wall": "top",
+          "target": "room-31"
+        },
+        {
+          "wall": "right",
+          "target": "room-35"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-37"
+        },
+        {
+          "wall": "left",
+          "target": "death-1"
+        }
+      ]
+    },
+    {
+      "id": "room-37",
+      "num": 37,
+      "type": "dungeon",
+      "title": "Collapsed Tunnel",
+      "doors": [
+        {
+          "wall": "left",
+          "target": "room-32"
+        },
+        {
+          "wall": "right",
+          "target": "room-36"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-38"
+        }
+      ]
+    },
+    {
+      "id": "room-38",
+      "num": 38,
+      "type": "hallway",
+      "title": "The Crusher Room",
+      "doors": [
+        {
+          "wall": "top",
+          "target": "room-33"
+        },
+        {
+          "wall": "right",
+          "target": "room-37"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-39"
+        },
+        {
+          "wall": "left",
+          "target": "room-43"
+        }
+      ]
+    },
+    {
+      "id": "room-39",
+      "num": 39,
+      "type": "crawlspace",
+      "title": "Venomous Den",
+      "doors": [
+        {
+          "wall": "left",
+          "target": "room-34"
+        },
+        {
+          "wall": "right",
+          "target": "room-38"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-40"
+        }
+      ]
+    },
+    {
+      "id": "room-40",
+      "num": 40,
+      "type": "dungeon",
+      "title": "The Oubliette",
+      "doors": [
+        {
+          "wall": "left",
+          "target": "room-35"
+        },
+        {
+          "wall": "right",
+          "target": "room-39"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-41"
+        }
+      ]
+    },
+    {
+      "id": "room-41",
+      "num": 41,
+      "type": "hallway",
+      "title": "Spike Corridor",
+      "doors": [
+        {
+          "wall": "top",
+          "target": "room-35"
+        },
+        {
+          "wall": "right",
+          "target": "room-40"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-42"
+        },
+        {
+          "wall": "left",
+          "target": "room-44"
+        },
+        {
+          "wall": "top",
+          "target": "death-2"
+        }
+      ]
+    },
+    {
+      "id": "room-42",
+      "num": 42,
+      "type": "dungeon",
+      "title": "The Drowning Cell",
+      "doors": [
+        {
+          "wall": "left",
+          "target": "room-41"
+        },
+        {
+          "wall": "right",
+          "target": "room-43"
+        }
+      ]
+    },
+    {
+      "id": "room-43",
+      "num": 43,
+      "type": "living-room",
+      "title": "Chain Room",
+      "doors": [
+        {
+          "wall": "top",
+          "target": "room-38"
+        },
+        {
+          "wall": "right",
+          "target": "room-42"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-44"
+        },
+        {
+          "wall": "left",
+          "target": "room-45"
+        }
+      ]
+    },
+    {
+      "id": "room-44",
+      "num": 44,
+      "type": "courtyard",
+      "title": "Furnace Passage",
+      "doors": [
+        {
+          "wall": "top",
+          "target": "room-41"
+        },
+        {
+          "wall": "right",
+          "target": "room-43"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-45"
+        },
+        {
+          "wall": "left",
+          "target": "room-46"
+        },
+        {
+          "wall": "top",
+          "target": "death-2"
+        }
+      ]
+    },
+    {
+      "id": "room-45",
+      "num": 45,
+      "type": "hallway",
+      "title": "The Garrote Hall",
+      "doors": [
+        {
+          "wall": "left",
+          "target": "room-43"
+        },
+        {
+          "wall": "right",
+          "target": "room-44"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-47"
+        }
+      ]
+    },
+    {
+      "id": "room-46",
+      "num": 46,
+      "type": "stone-hall",
+      "title": "Abyssal Staircase",
+      "doors": [
+        {
+          "wall": "top",
+          "target": "room-44"
+        },
+        {
+          "wall": "right",
+          "target": "room-47"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-48"
+        },
+        {
+          "wall": "left",
+          "target": "room-50"
+        }
+      ]
+    },
+    {
+      "id": "room-47",
+      "num": 47,
+      "type": "library",
+      "title": "The Void Chamber",
+      "doors": [
+        {
+          "wall": "top",
+          "target": "room-45"
+        },
+        {
+          "wall": "right",
+          "target": "room-46"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-49"
+        },
+        {
+          "wall": "left",
+          "target": "room-51"
+        }
+      ]
+    },
+    {
+      "id": "room-48",
+      "num": 48,
+      "type": "dungeon",
+      "title": "Frozen Passage",
+      "doors": [
+        {
+          "wall": "top",
+          "target": "room-46"
+        },
+        {
+          "wall": "right",
+          "target": "room-49"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-52"
+        },
+        {
+          "wall": "left",
+          "target": "death-3"
+        }
+      ]
+    },
+    {
+      "id": "room-49",
+      "num": 49,
+      "type": "hallway",
+      "title": "The Whirlpool Room",
+      "doors": [
+        {
+          "wall": "top",
+          "target": "room-47"
+        },
+        {
+          "wall": "right",
+          "target": "room-48"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-50"
+        },
+        {
+          "wall": "left",
+          "target": "room-53"
+        }
+      ]
+    },
+    {
+      "id": "room-50",
+      "num": 50,
+      "type": "courtyard",
+      "title": "Obsidian Corridor",
+      "doors": [
+        {
+          "wall": "top",
+          "target": "room-46"
+        },
+        {
+          "wall": "right",
+          "target": "room-49"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-51"
+        },
+        {
+          "wall": "left",
+          "target": "room-54"
+        },
+        {
+          "wall": "top",
+          "target": "death-3"
+        }
+      ]
+    },
+    {
+      "id": "room-51",
+      "num": 51,
+      "type": "living-room",
+      "title": "The Bleeding Walls",
+      "doors": [
+        {
+          "wall": "top",
+          "target": "room-47"
+        },
+        {
+          "wall": "right",
+          "target": "room-50"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-52"
+        },
+        {
+          "wall": "left",
+          "target": "room-55"
+        }
+      ]
+    },
+    {
+      "id": "room-52",
+      "num": 52,
+      "type": "stone-hall",
+      "title": "Shadow Throne",
+      "doors": [
+        {
+          "wall": "top",
+          "target": "room-48"
+        },
+        {
+          "wall": "right",
+          "target": "room-51"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-53"
+        },
+        {
+          "wall": "left",
+          "target": "room-56"
+        }
+      ]
+    },
+    {
+      "id": "room-53",
+      "num": 53,
+      "type": "library",
+      "title": "The Bone Altar",
+      "doors": [
+        {
+          "wall": "top",
+          "target": "room-49"
+        },
+        {
+          "wall": "right",
+          "target": "room-52"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-54"
+        },
+        {
+          "wall": "left",
+          "target": "room-57"
+        }
+      ]
+    },
+    {
+      "id": "room-54",
+      "num": 54,
+      "type": "hallway",
+      "title": "Wailing Tunnel",
+      "doors": [
+        {
+          "wall": "top",
+          "target": "room-50"
+        },
+        {
+          "wall": "right",
+          "target": "room-53"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-55"
+        },
+        {
+          "wall": "left",
+          "target": "room-58"
+        },
+        {
+          "wall": "top",
+          "target": "death-3"
+        }
+      ]
+    },
+    {
+      "id": "room-55",
+      "num": 55,
+      "type": "stone-hall",
+      "title": "The Vault of Keys",
+      "doors": [
+        {
+          "wall": "top",
+          "target": "room-51"
+        },
+        {
+          "wall": "right",
+          "target": "room-54"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-56"
+        },
+        {
+          "wall": "left",
+          "target": "room-59"
+        }
+      ],
+      "hasKey": true
+    },
+    {
+      "id": "room-56",
+      "num": 56,
+      "type": "dungeon",
+      "title": "Infernal Grate",
+      "doors": [
+        {
+          "wall": "top",
+          "target": "room-52"
+        },
+        {
+          "wall": "right",
+          "target": "room-55"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-57"
+        },
+        {
+          "wall": "left",
+          "target": "death-4"
+        }
+      ]
+    },
+    {
+      "id": "room-57",
+      "num": 57,
+      "type": "hallway",
+      "title": "The Hanging Cages",
+      "doors": [
+        {
+          "wall": "top",
+          "target": "room-53"
+        },
+        {
+          "wall": "right",
+          "target": "room-56"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-58"
+        },
+        {
+          "wall": "left",
+          "target": "room-61"
+        }
+      ]
+    },
+    {
+      "id": "room-58",
+      "num": 58,
+      "type": "living-room",
+      "title": "Charnel Pit",
+      "doors": [
+        {
+          "wall": "top",
+          "target": "room-54"
+        },
+        {
+          "wall": "right",
+          "target": "room-57"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-59"
+        },
+        {
+          "wall": "left",
+          "target": "room-62"
+        },
+        {
+          "wall": "top",
+          "target": "death-4"
+        }
+      ]
+    },
+    {
+      "id": "room-59",
+      "num": 59,
+      "type": "library",
+      "title": "The Last Lantern",
+      "doors": [
+        {
+          "wall": "left",
+          "target": "room-55"
+        },
+        {
+          "wall": "right",
+          "target": "room-58"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-60"
+        }
+      ]
+    },
+    {
+      "id": "room-60",
+      "num": 60,
+      "type": "courtyard",
+      "title": "Desperation's Door",
+      "doors": [
+        {
+          "wall": "left",
+          "target": "room-59"
+        },
+        {
+          "wall": "right",
+          "target": "room-63"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-75"
+        }
+      ]
+    },
+    {
+      "id": "room-61",
+      "num": 61,
+      "type": "stone-hall",
+      "title": "The Gauntlet Entry",
+      "doors": [
+        {
+          "wall": "top",
+          "target": "room-57"
+        },
+        {
+          "wall": "right",
+          "target": "room-62"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-64"
+        },
+        {
+          "wall": "left",
+          "target": "death-4"
+        }
+      ]
+    },
+    {
+      "id": "room-62",
+      "num": 62,
+      "type": "hallway",
+      "title": "Blade Runner Hall",
+      "doors": [
+        {
+          "wall": "top",
+          "target": "room-58"
+        },
+        {
+          "wall": "right",
+          "target": "room-61"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-63"
+        },
+        {
+          "wall": "left",
+          "target": "room-65"
+        },
+        {
+          "wall": "top",
+          "target": "death-4"
+        }
+      ]
+    },
+    {
+      "id": "room-63",
+      "num": 63,
+      "type": "courtyard",
+      "title": "The Burning Bridge",
+      "doors": [
+        {
+          "wall": "top",
+          "target": "room-60"
+        },
+        {
+          "wall": "right",
+          "target": "room-62"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-64"
+        },
+        {
+          "wall": "left",
+          "target": "room-66"
+        },
+        {
+          "wall": "top",
+          "target": "room-67"
+        }
+      ]
+    },
+    {
+      "id": "room-64",
+      "num": 64,
+      "type": "dungeon",
+      "title": "Skull Passage",
+      "doors": [
+        {
+          "wall": "top",
+          "target": "room-61"
+        },
+        {
+          "wall": "right",
+          "target": "room-63"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-65"
+        },
+        {
+          "wall": "left",
+          "target": "death-3"
+        }
+      ]
+    },
+    {
+      "id": "room-65",
+      "num": 65,
+      "type": "hallway",
+      "title": "Arrow Slit Corridor",
+      "doors": [
+        {
+          "wall": "top",
+          "target": "room-62"
+        },
+        {
+          "wall": "right",
+          "target": "room-64"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-66"
+        },
+        {
+          "wall": "left",
+          "target": "room-68"
+        },
+        {
+          "wall": "top",
+          "target": "room-69"
+        },
+        {
+          "wall": "right",
+          "target": "room-70"
+        }
+      ]
+    },
+    {
+      "id": "room-66",
+      "num": 66,
+      "type": "dungeon",
+      "title": "The Guillotine Room",
+      "doors": [
+        {
+          "wall": "top",
+          "target": "room-63"
+        },
+        {
+          "wall": "right",
+          "target": "room-65"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-67"
+        },
+        {
+          "wall": "left",
+          "target": "death-1"
+        },
+        {
+          "wall": "top",
+          "target": "death-2"
+        }
+      ]
+    },
+    {
+      "id": "room-67",
+      "num": 67,
+      "type": "living-room",
+      "title": "Lava Channel",
+      "doors": [
+        {
+          "wall": "top",
+          "target": "room-63"
+        },
+        {
+          "wall": "right",
+          "target": "room-66"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-68"
+        },
+        {
+          "wall": "left",
+          "target": "room-71"
+        }
+      ]
+    },
+    {
+      "id": "room-68",
+      "num": 68,
+      "type": "dungeon",
+      "title": "The Collapsing Floor",
+      "doors": [
+        {
+          "wall": "top",
+          "target": "room-65"
+        },
+        {
+          "wall": "right",
+          "target": "room-67"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-69"
+        },
+        {
+          "wall": "left",
+          "target": "death-2"
+        }
+      ]
+    },
+    {
+      "id": "room-69",
+      "num": 69,
+      "type": "hallway",
+      "title": "Poison Mist Hall",
+      "doors": [
+        {
+          "wall": "top",
+          "target": "room-65"
+        },
+        {
+          "wall": "right",
+          "target": "room-68"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-70"
+        },
+        {
+          "wall": "left",
+          "target": "room-72"
+        },
+        {
+          "wall": "top",
+          "target": "death-1"
+        }
+      ]
+    },
+    {
+      "id": "room-70",
+      "num": 70,
+      "type": "courtyard",
+      "title": "The Strangler's Nook",
+      "doors": [
+        {
+          "wall": "top",
+          "target": "room-65"
+        },
+        {
+          "wall": "right",
+          "target": "room-69"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-71"
+        },
+        {
+          "wall": "left",
+          "target": "room-73"
+        }
+      ]
+    },
+    {
+      "id": "room-71",
+      "num": 71,
+      "type": "hallway",
+      "title": "Razor Wire Maze",
+      "doors": [
+        {
+          "wall": "top",
+          "target": "room-67"
+        },
+        {
+          "wall": "right",
+          "target": "room-70"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-72"
+        },
+        {
+          "wall": "left",
+          "target": "room-74"
+        }
+      ]
+    },
+    {
+      "id": "room-72",
+      "num": 72,
+      "type": "living-room",
+      "title": "The Executioner's Stage",
+      "doors": [
+        {
+          "wall": "top",
+          "target": "room-69"
+        },
+        {
+          "wall": "right",
+          "target": "room-71"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-73"
+        },
+        {
+          "wall": "left",
+          "target": "room-75"
+        },
+        {
+          "wall": "top",
+          "target": "death-3"
+        }
+      ]
+    },
+    {
+      "id": "room-73",
+      "num": 73,
+      "type": "dungeon",
+      "title": "Trapdoor Gallery",
+      "doors": [
+        {
+          "wall": "top",
+          "target": "room-70"
+        },
+        {
+          "wall": "right",
+          "target": "room-72"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-74"
+        },
+        {
+          "wall": "left",
+          "target": "death-4"
+        }
+      ]
+    },
+    {
+      "id": "room-74",
+      "num": 74,
+      "type": "hallway",
+      "title": "The Final Trick",
+      "doors": [
+        {
+          "wall": "left",
+          "target": "room-71"
+        },
+        {
+          "wall": "right",
+          "target": "room-73"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-75"
+        }
+      ]
+    },
+    {
+      "id": "room-75",
+      "num": 75,
+      "type": "stone-hall",
+      "title": "Gate of Agony",
+      "doors": [
+        {
+          "wall": "left",
+          "target": "room-60"
+        },
+        {
+          "wall": "right",
+          "target": "room-72"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-74"
+        }
+      ]
+    },
+    {
+      "id": "death-1",
+      "type": "death",
+      "title": "The Abyss 1",
+      "isDeath": true,
+      "doors": []
+    },
+    {
+      "id": "death-2",
+      "type": "death",
+      "title": "The Abyss 2",
+      "isDeath": true,
+      "doors": []
+    },
+    {
+      "id": "death-3",
+      "type": "death",
+      "title": "The Abyss 3",
+      "isDeath": true,
+      "doors": []
+    },
+    {
+      "id": "death-4",
+      "type": "death",
+      "title": "The Abyss 4",
+      "isDeath": true,
+      "doors": []
+    },
+    {
+      "id": "freedom",
+      "num": 76,
+      "type": "outside",
+      "title": "Freedom",
+      "isWin": true,
+      "doors": [
+        {
+          "wall": "top",
+          "target": "room-1"
+        }
+      ]
+    }
+  ]
+}

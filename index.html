@@ -1815,7 +1815,8 @@ function drawWin() {
 // ═══════════════════════════════════════════════
 function updateUI() {
   const rm = curRoom();
-  document.getElementById('room-name').textContent = rm ? rm.title : '';
+  const prefix = mapConfig.name ? mapConfig.name + ': ' : '';
+  document.getElementById('room-name').textContent = rm ? prefix + rm.title : '';
 }
 
 (function loop() { update(); render(); requestAnimationFrame(loop); })();
