@@ -63,6 +63,14 @@
     font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: 2px;
     color: rgba(160,140,110,0.4); margin-top: 10px;
   }
+  #quit-btn {
+    display: none; position: fixed; top: 6px; left: 6px; z-index: 20;
+    font-family: 'Cinzel', serif; font-size: 14px; color: rgba(200,180,140,0.3);
+    background: none; border: 1px solid rgba(200,180,140,0.15); border-radius: 4px;
+    width: 24px; height: 24px; cursor: pointer; line-height: 22px; text-align: center;
+    padding: 0; transition: all 0.3s;
+  }
+  #quit-btn:hover, #quit-btn:active { color: rgba(255,240,200,0.7); border-color: rgba(255,240,200,0.4); }
 </style>
 </head>
 <body>
@@ -72,6 +80,7 @@
   <div id="map-selector"><div id="map-loading">Loading maps...</div></div>
   <p>Select a map to begin</p>
 </div>
+<button id="quit-btn">✕</button>
 <canvas id="game"></canvas>
 <div id="room-name"></div>
 <div id="step-display">STEPS: 0</div>
@@ -730,8 +739,8 @@ function startGame() {
   S.intro=true; S.introTimer=0; S.introPhase='outside';
   S.room = mapConfig.startRoom || 'room-1';
   document.getElementById('title-screen').classList.add('hidden');
-  // Mobile fullscreen on game start
   if (isMobile) {
+    document.getElementById('quit-btn').style.display = 'block';
     const el = document.documentElement;
     if (el.requestFullscreen) el.requestFullscreen().catch(()=>{});
     else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
@@ -767,6 +776,7 @@ function returnToTitle() {
   fadeOutDrone();
   if (audioCtx) { try { audioCtx.close(); } catch(e){} audioCtx = null; }
   document.getElementById('title-screen').classList.remove('hidden');
+  document.getElementById('quit-btn').style.display = 'none';
   document.getElementById('room-name').textContent = '';
   document.getElementById('step-display').textContent = 'STEPS: 0';
 }
@@ -780,6 +790,9 @@ document.addEventListener('visibilitychange', () => {
     audioCtx.resume();
   }
 });
+
+// Quit button
+document.getElementById('quit-btn').addEventListener('click', () => returnToTitle());
 
 // Build map selector on load
 (async function initMapSelector() {
