@@ -839,7 +839,7 @@
       "doors": [
         {
           "wall": "left",
-          "target": "room-4"
+          "target": "room-3"
         },
         {
           "wall": "right",

@@ -548,6 +548,7 @@ const S = {
   won: false, winTimer: 0,
   intro: false, introTimer: 0, introPhase: 'outside',
   tableTimer: 0, tableTouching: false,
+  walkTarget: null, walkCallback: null,
 };
 
 // ═══════════════════════════════════════════════
@@ -612,14 +613,31 @@ if (isMobile) {
         }
         // Walk character toward door then transition
         const z2 = doorZone(d, rm);
+        let goalX, goalY;
         switch(d.wall) {
-          case 'top':    S.px = z2.x + z2.w/2; S.py = PLAY_T + 4; S.dir = 'up'; break;
-          case 'bottom': S.px = z2.x + z2.w/2; S.py = PLAY_B - 4; S.dir = 'down'; break;
-          case 'left':   S.py = z2.y + z2.h/2; S.px = PLAY_L + 4; S.dir = 'left'; break;
-          case 'right':  S.py = z2.y + z2.h/2; S.px = PLAY_R - 4; S.dir = 'right'; break;
+          case 'top':    goalX = z2.x + z2.w/2; goalY = PLAY_T + 2; break;
+          case 'bottom': goalX = z2.x + z2.w/2; goalY = PLAY_B - 2; break;
+          case 'left':   goalX = PLAY_L + 2; goalY = z2.y + z2.h/2; break;
+          case 'right':  goalX = PLAY_R - 2; goalY = z2.y + z2.h/2; break;
         }
-        S.moving = true; S.aFrame = 1;
-        setTimeout(() => startTrans(d.target, d.wall), 200);
+        const doorRef = d;
+        S.walkTarget = {x: goalX, y: goalY};
+        S.walkCallback = () => startTrans(doorRef.target, doorRef.wall);
+        return;
+      }
+    }
+
+    // Check key tap
+    if (rm.hasKey && !S.pickedKeys[rm.id]) {
+      if (Math.abs(tx - KEY_POS.x) < 14 && Math.abs(ty - KEY_POS.y) < 14) {
+        S.walkTarget = {x: KEY_POS.x, y: KEY_POS.y};
+        S.walkCallback = () => {
+          if (rm.hasKey && !S.pickedKeys[rm.id]) {
+            S.pickedKeys[rm.id] = true;
+            S.keyCount++;
+            sfxPickup();
+          }
+        };
         return;
       }
     }
@@ -635,8 +653,9 @@ if (isMobile) {
         else if (p.x === 'center') { px = GW/2; py = (PLAY_T+PLAY_B)/2; }
         else continue;
         if (Math.abs(tx - px) < 16 && Math.abs(ty - py) < 16) {
-          S.px = px; S.py = py;
-          startTrans(p.target, 'top');
+          const pt = p.target;
+          S.walkTarget = {x: px, y: py};
+          S.walkCallback = () => startTrans(pt, 'top');
           return;
         }
       }
@@ -702,6 +721,7 @@ function restartGame() {
   S.knockX=0; S.knockY=0; S.flash=0;
   S.won=false; S.winTimer=0;
   S.tableTimer=0; S.tableTouching=false;
+  S.walkTarget=null; S.walkCallback=null;
   recomputeLockedPairs();
   document.getElementById('step-display').textContent='STEPS: 0';
   updateUI();
@@ -1233,6 +1253,30 @@ function update() {
     // Clamp inside room
     S.px = Math.max(PLAY_L + 5, Math.min(PLAY_R - 5, S.px));
     S.py = Math.max(PLAY_T + 3, Math.min(PLAY_B - 3, S.py));
+  }
+
+  // Walk-to-target (mobile tap animation)
+  if (S.walkTarget) {
+    const wtx = S.walkTarget.x, wty = S.walkTarget.y;
+    const dx2 = wtx - S.px, dy2 = wty - S.py;
+    const dist = Math.hypot(dx2, dy2);
+    if (dist < 3) {
+      S.px = wtx; S.py = wty;
+      S.moving = false;
+      const cb = S.walkCallback;
+      S.walkTarget = null; S.walkCallback = null;
+      if (cb) cb();
+      return;
+    }
+    const spd = 2;
+    S.px += (dx2 / dist) * spd;
+    S.py += (dy2 / dist) * spd;
+    // Set facing direction
+    if (Math.abs(dx2) > Math.abs(dy2)) S.dir = dx2 > 0 ? 'right' : 'left';
+    else S.dir = dy2 > 0 ? 'down' : 'up';
+    S.moving = true;
+    S.aTimer++; if (S.aTimer >= 8) { S.aTimer = 0; S.aFrame = (S.aFrame + 1) % 2; }
+    return; // don't process manual input while auto-walking
   }
 
   // Key pickup
