@@ -569,6 +569,9 @@ function resize() {
 }
 window.addEventListener('resize', resize); resize();
 
+// Mobile detection (used throughout)
+const isMobile = /Android|iPhone|iPad|iPod|webOS/i.test(navigator.userAgent) || ('ontouchstart' in window && window.innerWidth < 1024);
+
 // Mobile fullscreen on landscape rotation
 if (isMobile) {
   function tryFullscreen() {
@@ -599,7 +602,6 @@ window.addEventListener('keydown', e => {
 window.addEventListener('keyup', e => { S.keys[e.key]=false; });
 
 // Mobile-only: tap on door number plaques to enter rooms
-const isMobile = /Android|iPhone|iPad|iPod|webOS/i.test(navigator.userAgent) || ('ontouchstart' in window && window.innerWidth < 1024);
 if (isMobile) {
   let touchHoldTimer = null;
   let touchHoldTarget = null;
