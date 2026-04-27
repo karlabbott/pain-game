@@ -251,6 +251,14 @@
         {
           "wall": "right",
           "target": "the-pit"
+        },
+        {
+          "wall": "left",
+          "target": "room-9"
+        },
+        {
+          "wall": "right",
+          "target": "room-11"
         }
       ]
     },
