@@ -787,7 +787,7 @@
       "doors": [
         {
           "wall": "bottom",
-          "target": "room-45"
+          "target": "room-46"
         }
       ]
     },
@@ -798,8 +798,12 @@
       "title": "Stone Chamber",
       "doors": [
         {
-          "wall": "bottom",
-          "target": "room-46"
+          "wall": "left",
+          "target": "room-33"
+        },
+        {
+          "wall": "right",
+          "target": "room-8"
         }
       ]
     },

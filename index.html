@@ -581,6 +581,9 @@ window.addEventListener('keyup', e => { S.keys[e.key]=false; });
 // Mobile-only: tap on door number plaques to enter rooms
 const isMobile = /Android|iPhone|iPad|iPod|webOS/i.test(navigator.userAgent) || ('ontouchstart' in window && window.innerWidth < 1024);
 if (isMobile) {
+  let touchHoldTimer = null;
+  let touchHoldTarget = null;
+
   canvas.addEventListener('touchstart', e => {
     e.preventDefault();
     if (!S.started || S.trans || S.dead || S.won || S.intro) return;
@@ -591,11 +594,12 @@ if (isMobile) {
 
     const rm = curRoom();
     if (!rm) return;
+
+    // Check door taps
     for (const d of rm.doors) {
       if (!isDoorVisible(d)) continue;
       const z = doorZone(d, rm);
-      // Expand hit area slightly for touch
-      if (tx >= z.x - 4 && tx <= z.x + z.w + 4 && ty >= z.y - 4 && ty <= z.y + z.h + 4) {
+      if (tx >= z.x - 6 && tx <= z.x + z.w + 6 && ty >= z.y - 6 && ty <= z.y + z.h + 6) {
         if (isDoorLocked(d)) {
           if (S.keyCount > 0) {
             S.openedDoors[doorPair(S.room, d.target)] = true;
@@ -606,11 +610,69 @@ if (isMobile) {
             return;
           }
         }
-        startTrans(d.target, d.wall);
+        // Walk character toward door then transition
+        const z2 = doorZone(d, rm);
+        switch(d.wall) {
+          case 'top':    S.px = z2.x + z2.w/2; S.py = PLAY_T + 4; S.dir = 'up'; break;
+          case 'bottom': S.px = z2.x + z2.w/2; S.py = PLAY_B - 4; S.dir = 'down'; break;
+          case 'left':   S.py = z2.y + z2.h/2; S.px = PLAY_L + 4; S.dir = 'left'; break;
+          case 'right':  S.py = z2.y + z2.h/2; S.px = PLAY_R - 4; S.dir = 'right'; break;
+        }
+        S.moving = true; S.aFrame = 1;
+        setTimeout(() => startTrans(d.target, d.wall), 200);
+        return;
+      }
+    }
+
+    // Check portal taps
+    if (rm.hasPortals && rm.portals) {
+      for (const p of rm.portals) {
+        let px, py;
+        if (p.x === 'top-left') { px = PLAY_L + 24; py = PLAY_T + 24; }
+        else if (p.x === 'bottom-right') { px = PLAY_R - 24; py = PLAY_B - 24; }
+        else if (p.x === 'top-right') { px = PLAY_R - 24; py = PLAY_T + 24; }
+        else if (p.x === 'bottom-left') { px = PLAY_L + 24; py = PLAY_B - 24; }
+        else if (p.x === 'center') { px = GW/2; py = (PLAY_T+PLAY_B)/2; }
+        else continue;
+        if (Math.abs(tx - px) < 16 && Math.abs(ty - py) < 16) {
+          S.px = px; S.py = py;
+          startTrans(p.target, 'top');
+          return;
+        }
+      }
+    }
+
+    // Check table tap-and-hold
+    if (rm.hasTable) {
+      const tableTx = PLAY_L + 40, tableTy = PLAY_B - 30;
+      if (Math.abs(tx - tableTx) < 20 && Math.abs(ty - tableTy) < 16) {
+        S.px = tableTx; S.py = tableTy;
+        touchHoldTarget = 'table';
+        S.tableTouching = true;
+        touchHoldTimer = setInterval(() => {
+          S.tableTimer += 1/10;
+          if (S.tableTimer >= 5) {
+            clearInterval(touchHoldTimer);
+            touchHoldTimer = null;
+            S.tableTimer = 0; S.tableTouching = false;
+            startTrans('room-17', 'top');
+          }
+        }, 100);
         return;
       }
     }
   }, {passive: false});
+
+  canvas.addEventListener('touchend', e => {
+    // Cancel table hold if finger lifted
+    if (touchHoldTimer) {
+      clearInterval(touchHoldTimer);
+      touchHoldTimer = null;
+      touchHoldTarget = null;
+      S.tableTouching = false;
+      S.tableTimer = Math.max(0, S.tableTimer - 0.5);
+    }
+  });
 }
 
 async function selectMap(mapFile) {
