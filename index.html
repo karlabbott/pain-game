@@ -581,12 +581,7 @@ if (isMobile) {
       tryFullscreen();
     }
   });
-  // Also go fullscreen on first game start tap
-  const origSelectMap = selectMap;
-  selectMap = async function(mapFile) {
-    tryFullscreen();
-    return origSelectMap(mapFile);
-  };
+  // Fullscreen is triggered from startGame() instead
 }
 
 // ═══════════════════════════════════════════════
@@ -733,6 +728,12 @@ function startGame() {
   S.intro=true; S.introTimer=0; S.introPhase='outside';
   S.room = mapConfig.startRoom || 'room-1';
   document.getElementById('title-screen').classList.add('hidden');
+  // Mobile fullscreen on game start
+  if (isMobile) {
+    const el = document.documentElement;
+    if (el.requestFullscreen) el.requestFullscreen().catch(()=>{});
+    else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+  }
   initAudio();
   if (audioCtx) shiftDrone('outside');
 }
