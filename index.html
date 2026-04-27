@@ -587,7 +587,8 @@ if (isMobile) {
 
   canvas.addEventListener('touchstart', e => {
     e.preventDefault();
-    if (!S.started || S.trans || S.dead || S.won || S.intro) return;
+    if (!S.started || S.trans || S.intro) return;
+    if (S.dead || S.won) { restartGame(); return; }
     const rect = canvas.getBoundingClientRect();
     const scaleX = GW / rect.width, scaleY = GH / rect.height;
     const tx = (e.touches[0].clientX - rect.left) * scaleX;
@@ -1954,7 +1955,7 @@ function drawDeath() {
       const rA = Math.min((t - 3), 1) * (0.4 + Math.sin(t*3)*0.15);
       ctx.fillStyle = `rgba(160,140,120,${rA})`;
       ctx.font = '8px monospace';
-      ctx.fillText('PRESS R TO RESTART', GW/2, GH/2 + 12);
+      ctx.fillText(isMobile ? 'TAP TO RESTART' : 'PRESS R TO RESTART', GW/2, GH/2 + 12);
     }
   }
 }
@@ -2002,7 +2003,7 @@ function drawWin() {
       const rA = Math.min((t - 5), 1) * (0.5 + Math.sin(t * 2.5) * 0.15);
       ctx.fillStyle = `rgba(200,220,180,${rA})`;
       ctx.font = '8px monospace';
-      ctx.fillText('PRESS R TO PLAY AGAIN', GW/2, GH/2 + 28);
+      ctx.fillText(isMobile ? 'TAP TO PLAY AGAIN' : 'PRESS R TO PLAY AGAIN', GW/2, GH/2 + 28);
     }
   }
 }
