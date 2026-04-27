@@ -2,7 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#000000">
 <title>PAIN</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap');
@@ -564,6 +568,26 @@ function resize() {
   canvas.style.width = (GW*s)+'px'; canvas.style.height = (GH*s)+'px';
 }
 window.addEventListener('resize', resize); resize();
+
+// Mobile fullscreen on landscape rotation
+if (isMobile) {
+  function tryFullscreen() {
+    const el = document.documentElement;
+    if (el.requestFullscreen) el.requestFullscreen().catch(()=>{});
+    else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+  }
+  screen.orientation?.addEventListener('change', () => {
+    if (screen.orientation.type.startsWith('landscape') && S.started) {
+      tryFullscreen();
+    }
+  });
+  // Also go fullscreen on first game start tap
+  const origSelectMap = selectMap;
+  selectMap = async function(mapFile) {
+    tryFullscreen();
+    return origSelectMap(mapFile);
+  };
+}
 
 // ═══════════════════════════════════════════════
 //  INPUT
