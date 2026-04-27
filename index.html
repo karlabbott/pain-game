@@ -578,6 +578,41 @@ window.addEventListener('keydown', e => {
 });
 window.addEventListener('keyup', e => { S.keys[e.key]=false; });
 
+// Mobile-only: tap on door number plaques to enter rooms
+const isMobile = /Android|iPhone|iPad|iPod|webOS/i.test(navigator.userAgent) || ('ontouchstart' in window && window.innerWidth < 1024);
+if (isMobile) {
+  canvas.addEventListener('touchstart', e => {
+    e.preventDefault();
+    if (!S.started || S.trans || S.dead || S.won || S.intro) return;
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = GW / rect.width, scaleY = GH / rect.height;
+    const tx = (e.touches[0].clientX - rect.left) * scaleX;
+    const ty = (e.touches[0].clientY - rect.top) * scaleY;
+
+    const rm = curRoom();
+    if (!rm) return;
+    for (const d of rm.doors) {
+      if (!isDoorVisible(d)) continue;
+      const z = doorZone(d, rm);
+      // Expand hit area slightly for touch
+      if (tx >= z.x - 4 && tx <= z.x + z.w + 4 && ty >= z.y - 4 && ty <= z.y + z.h + 4) {
+        if (isDoorLocked(d)) {
+          if (S.keyCount > 0) {
+            S.openedDoors[doorPair(S.room, d.target)] = true;
+            sfxUnlock();
+          } else {
+            S.blocked = 1; S.flash = 1;
+            sfxBlocked();
+            return;
+          }
+        }
+        startTrans(d.target, d.wall);
+        return;
+      }
+    }
+  }, {passive: false});
+}
+
 async function selectMap(mapFile) {
   const loadingEl = document.getElementById('map-loading');
   if (loadingEl) loadingEl.textContent = 'Loading...';
@@ -759,76 +794,79 @@ function fadeOutDrone() {
 // D minor, ~70 seconds, square + triangle voices.
 const R = 'rest';
 const MELODY = [
-  // ── A: Frantic opening — fast, aggressive ──
-  {n:0,d:.18,w:'square'},{n:3,d:.15,w:'square'},{n:5,d:.15,w:'square'},
-  {n:7,d:.18,w:'square'},{n:8,d:.12,w:'square'},{n:7,d:.12,w:'square'},
-  {n:5,d:.15,w:'square'},{n:3,d:.12,w:'square'},{n:0,d:.2,w:'square'},
-  {n:R,d:.1},
-  {n:0,d:.12,w:'square'},{n:1,d:.12,w:'square'},{n:0,d:.12,w:'square'},
-  {n:-2,d:.15,w:'square'},{n:0,d:.12,w:'square'},{n:3,d:.12,w:'square'},
-  {n:5,d:.15,w:'square'},{n:8,d:.12,w:'square'},{n:7,d:.18,w:'square'},
-  {n:5,d:.12,w:'square'},{n:3,d:.15,w:'square'},{n:0,d:.25,w:'square'},
-  {n:R,d:.15},
+  // ── Hook: absurdly catchy 4-note motif that NEVER leaves your head ──
+  // High, bouncy, repeats mercilessly — doo doo doo doo doo doo
+  {n:12,d:.12,w:'square'},{n:12,d:.12,w:'square'},{n:12,d:.12,w:'square'},
+  {n:12,d:.08,w:'square'},{n:10,d:.08,w:'square'},{n:12,d:.18,w:'square'},
+  {n:R,d:.06},
+  {n:12,d:.12,w:'square'},{n:12,d:.12,w:'square'},{n:12,d:.12,w:'square'},
+  {n:12,d:.08,w:'square'},{n:10,d:.08,w:'square'},{n:12,d:.18,w:'square'},
+  {n:R,d:.06},
 
-  // ── A2: Repeat with chromatic madness ──
-  {n:0,d:.15,w:'square'},{n:1,d:.1,w:'square'},{n:3,d:.12,w:'square'},
-  {n:5,d:.12,w:'square'},{n:6,d:.1,w:'square'},{n:7,d:.15,w:'square'},
-  {n:8,d:.1,w:'square'},{n:10,d:.12,w:'square'},{n:8,d:.1,w:'square'},
-  {n:7,d:.12,w:'square'},{n:5,d:.1,w:'square'},{n:3,d:.15,w:'square'},
+  // ── Hook repeat up a third — just when you thought it stopped ──
+  {n:15,d:.12,w:'square'},{n:15,d:.12,w:'square'},{n:15,d:.12,w:'square'},
+  {n:15,d:.08,w:'square'},{n:13,d:.08,w:'square'},{n:15,d:.18,w:'square'},
+  {n:R,d:.06},
+  {n:15,d:.12,w:'square'},{n:15,d:.12,w:'square'},{n:15,d:.12,w:'square'},
+  {n:15,d:.08,w:'square'},{n:13,d:.08,w:'square'},{n:15,d:.18,w:'square'},
   {n:R,d:.1},
-  {n:0,d:.12,w:'square'},{n:-2,d:.12,w:'square'},{n:0,d:.1,w:'square'},
-  {n:3,d:.1,w:'square'},{n:5,d:.12,w:'square'},{n:7,d:.1,w:'square'},
-  {n:8,d:.15,w:'square'},{n:7,d:.1,w:'square'},{n:5,d:.12,w:'square'},
-  {n:3,d:.1,w:'square'},{n:0,d:.3,w:'square'},
-  {n:R,d:.2},
 
-  // ── B: Manic sawtooth descent ──
-  {n:12,d:.12,w:'sawtooth'},{n:11,d:.1,w:'sawtooth'},{n:10,d:.1,w:'sawtooth'},
-  {n:8,d:.12,w:'sawtooth'},{n:7,d:.1,w:'sawtooth'},{n:5,d:.12,w:'sawtooth'},
-  {n:3,d:.1,w:'sawtooth'},{n:0,d:.15,w:'sawtooth'},
+  // ── B: Descending earworm — na na na na na ──
+  {n:12,d:.1,w:'square'},{n:10,d:.1,w:'square'},{n:8,d:.1,w:'square'},
+  {n:7,d:.1,w:'square'},{n:5,d:.15,w:'square'},
+  {n:R,d:.06},
+  {n:12,d:.1,w:'square'},{n:10,d:.1,w:'square'},{n:8,d:.1,w:'square'},
+  {n:7,d:.1,w:'square'},{n:5,d:.15,w:'square'},
+  {n:R,d:.06},
+  {n:5,d:.1,w:'square'},{n:5,d:.1,w:'square'},{n:7,d:.1,w:'square'},
+  {n:5,d:.1,w:'square'},{n:3,d:.12,w:'square'},{n:5,d:.18,w:'square'},
+  {n:R,d:.1},
+
+  // ── C: The hook AGAIN but with sawtooth — it's back and worse ──
+  {n:12,d:.1,w:'sawtooth'},{n:12,d:.1,w:'sawtooth'},{n:12,d:.1,w:'sawtooth'},
+  {n:12,d:.07,w:'sawtooth'},{n:10,d:.07,w:'sawtooth'},{n:12,d:.15,w:'sawtooth'},
+  {n:R,d:.05},
+  {n:12,d:.1,w:'sawtooth'},{n:12,d:.1,w:'sawtooth'},{n:12,d:.1,w:'sawtooth'},
+  {n:12,d:.07,w:'sawtooth'},{n:10,d:.07,w:'sawtooth'},{n:12,d:.15,w:'sawtooth'},
+  {n:R,d:.05},
+  // Up the octave — even more piercing
+  {n:24,d:.1,w:'sawtooth'},{n:24,d:.1,w:'sawtooth'},{n:24,d:.1,w:'sawtooth'},
+  {n:24,d:.07,w:'sawtooth'},{n:22,d:.07,w:'sawtooth'},{n:24,d:.2,w:'sawtooth'},
+  {n:R,d:.1},
+
+  // ── D: Fake ending — you think it's over... ──
+  {n:0,d:.2,w:'triangle'},{n:R,d:.15},
+  {n:0,d:.15,w:'triangle'},{n:R,d:.15},
+  {n:0,d:.1,w:'triangle'},
+  {n:R,d:.3},
+
+  // ── E: NOPE — the hook comes back DOUBLE TIME ──
+  {n:12,d:.07,w:'square'},{n:12,d:.07,w:'square'},{n:12,d:.07,w:'square'},
+  {n:10,d:.05,w:'square'},{n:12,d:.1,w:'square'},
+  {n:12,d:.07,w:'square'},{n:12,d:.07,w:'square'},{n:12,d:.07,w:'square'},
+  {n:10,d:.05,w:'square'},{n:12,d:.1,w:'square'},
+  {n:15,d:.07,w:'square'},{n:15,d:.07,w:'square'},{n:15,d:.07,w:'square'},
+  {n:13,d:.05,w:'square'},{n:15,d:.1,w:'square'},
+  {n:15,d:.07,w:'square'},{n:15,d:.07,w:'square'},{n:15,d:.07,w:'square'},
+  {n:13,d:.05,w:'square'},{n:15,d:.1,w:'square'},
   {n:R,d:.08},
-  {n:12,d:.1,w:'sawtooth'},{n:10,d:.1,w:'sawtooth'},{n:8,d:.1,w:'sawtooth'},
-  {n:7,d:.12,w:'sawtooth'},{n:5,d:.1,w:'sawtooth'},{n:3,d:.1,w:'sawtooth'},
-  {n:1,d:.12,w:'sawtooth'},{n:0,d:.15,w:'sawtooth'},{n:-2,d:.12,w:'sawtooth'},
-  {n:-5,d:.2,w:'sawtooth'},
-  {n:R,d:.15},
 
-  // ── C: Octave stabs — panic ──
-  {n:0,d:.1,w:'square'},{n:12,d:.1,w:'square'},{n:0,d:.1,w:'square'},
-  {n:12,d:.1,w:'square'},{n:R,d:.08},
-  {n:3,d:.1,w:'square'},{n:15,d:.1,w:'square'},{n:3,d:.1,w:'square'},
-  {n:15,d:.1,w:'square'},{n:R,d:.08},
-  {n:5,d:.1,w:'square'},{n:17,d:.1,w:'square'},{n:5,d:.1,w:'square'},
-  {n:17,d:.1,w:'square'},{n:R,d:.08},
-  {n:7,d:.1,w:'square'},{n:19,d:.1,w:'square'},{n:7,d:.1,w:'square'},
+  // ── F: Triumphant annoying conclusion — marching to your doom ──
+  {n:12,d:.1,w:'square'},{n:15,d:.1,w:'square'},{n:19,d:.1,w:'square'},
+  {n:24,d:.2,w:'square'},
+  {n:R,d:.05},
+  {n:24,d:.08,w:'square'},{n:24,d:.08,w:'square'},{n:24,d:.08,w:'square'},
+  {n:24,d:.08,w:'square'},{n:24,d:.08,w:'square'},{n:24,d:.3,w:'square'},
   {n:R,d:.1},
-  {n:8,d:.12,w:'square'},{n:7,d:.1,w:'square'},{n:5,d:.12,w:'square'},
-  {n:3,d:.1,w:'square'},{n:0,d:.25,w:'square'},
-  {n:R,d:.2},
-
-  // ── C2: Relentless chromatic climb ──
-  {n:0,d:.1,w:'square'},{n:1,d:.1,w:'square'},{n:2,d:.1,w:'square'},
-  {n:3,d:.1,w:'square'},{n:4,d:.1,w:'square'},{n:5,d:.1,w:'square'},
-  {n:6,d:.1,w:'square'},{n:7,d:.1,w:'square'},{n:8,d:.1,w:'square'},
-  {n:9,d:.1,w:'square'},{n:10,d:.1,w:'square'},{n:11,d:.1,w:'square'},
-  {n:12,d:.3,w:'square'},
-  {n:R,d:.12},
-  {n:12,d:.1,w:'square'},{n:11,d:.1,w:'square'},{n:10,d:.1,w:'square'},
-  {n:8,d:.1,w:'square'},{n:7,d:.1,w:'square'},{n:5,d:.12,w:'square'},
-  {n:3,d:.1,w:'square'},{n:0,d:.3,w:'square'},
-  {n:R,d:.25},
-
-  // ── D: Brief unsettling calm before loop ──
-  {n:0,d:.3,w:'triangle'},{n:R,d:.2},
-  {n:1,d:.25,w:'triangle'},{n:0,d:.2,w:'triangle'},{n:R,d:.15},
-  {n:-2,d:.3,w:'triangle'},{n:-5,d:.4,w:'triangle'},
-  {n:R,d:.2},
-  {n:0,d:.15,w:'triangle'},{n:1,d:.12,w:'triangle'},{n:0,d:.15,w:'triangle'},
-  {n:-1,d:.12,w:'triangle'},{n:0,d:.5,w:'triangle'},
-  {n:R,d:.6},
+  {n:12,d:.1,w:'square'},{n:15,d:.1,w:'square'},{n:19,d:.1,w:'square'},
+  {n:24,d:.2,w:'square'},
+  {n:R,d:.05},
+  {n:22,d:.07,w:'square'},{n:24,d:.07,w:'square'},{n:22,d:.07,w:'square'},
+  {n:24,d:.07,w:'square'},{n:22,d:.07,w:'square'},{n:24,d:.3,w:'square'},
+  {n:R,d:.4},
 ];
 
-const MELODY_BASE = 147; // D3
+const MELODY_BASE = 220; // A3 — higher = more annoying
 
 let melodyTimeout = null;
 
@@ -1175,6 +1213,23 @@ function update() {
     S.tableTimer = 0; S.tableTouching = false;
   }
 
+  // Portal mechanic (room 19 style — step on a spot, instant teleport)
+  if (rm0.hasPortals && rm0.portals) {
+    for (const p of rm0.portals) {
+      let px, py;
+      if (p.x === 'top-left') { px = PLAY_L + 24; py = PLAY_T + 24; }
+      else if (p.x === 'bottom-right') { px = PLAY_R - 24; py = PLAY_B - 24; }
+      else if (p.x === 'top-right') { px = PLAY_R - 24; py = PLAY_T + 24; }
+      else if (p.x === 'bottom-left') { px = PLAY_L + 24; py = PLAY_B - 24; }
+      else if (p.x === 'center') { px = GW/2; py = (PLAY_T+PLAY_B)/2; }
+      else continue;
+      if (Math.hypot(S.px - px, S.py - py) < 10) {
+        startTrans(p.target, 'top');
+        return;
+      }
+    }
+  }
+
   let dx=0, dy=0;
   if (S.keys['ArrowLeft']||S.keys['a'])  { dx=-SPEED; S.dir='left'; }
   if (S.keys['ArrowRight']||S.keys['d']) { dx=+SPEED; S.dir='right'; }
@@ -1435,6 +1490,7 @@ function render() {
   drawKeys(rm);
   drawDecor(th);
   drawTable(rm);
+  drawPortals(rm);
   drawWalls(rm, th);
   drawDoors(rm, th);
   drawChar();
@@ -1505,6 +1561,41 @@ function drawTable(rm) {
       ctx.arc(tx, ty, 20, -Math.PI/2, -Math.PI/2 + prog * Math.PI * 2);
       ctx.stroke();
     }
+  }
+}
+
+function drawPortals(rm) {
+  if (!rm.hasPortals || !rm.portals) return;
+  for (const p of rm.portals) {
+    let px, py;
+    if (p.x === 'top-left') { px = PLAY_L + 24; py = PLAY_T + 24; }
+    else if (p.x === 'bottom-right') { px = PLAY_R - 24; py = PLAY_B - 24; }
+    else if (p.x === 'top-right') { px = PLAY_R - 24; py = PLAY_T + 24; }
+    else if (p.x === 'bottom-left') { px = PLAY_L + 24; py = PLAY_B - 24; }
+    else if (p.x === 'center') { px = GW/2; py = (PLAY_T+PLAY_B)/2; }
+    else continue;
+
+    // Swirling portal effect
+    const t = S.time;
+    ctx.save();
+    // Outer glow
+    ctx.globalAlpha = 0.15 + Math.sin(t * 2) * 0.05;
+    ctx.fillStyle = '#6030a0';
+    ctx.beginPath(); ctx.arc(px, py, 10 + Math.sin(t*3)*2, 0, Math.PI*2); ctx.fill();
+    // Inner void
+    ctx.globalAlpha = 0.8;
+    ctx.fillStyle = '#0a0018';
+    ctx.beginPath(); ctx.arc(px, py, 5, 0, Math.PI*2); ctx.fill();
+    // Spinning particles
+    for (let i = 0; i < 4; i++) {
+      const angle = t * 2 + i * Math.PI / 2;
+      const dist = 6 + Math.sin(t * 3 + i) * 2;
+      ctx.globalAlpha = 0.4;
+      ctx.fillStyle = '#a060e0';
+      ctx.fillRect(px + Math.cos(angle) * dist - 1, py + Math.sin(angle) * dist - 1, 2, 2);
+    }
+    ctx.globalAlpha = 1;
+    ctx.restore();
   }
 }
 

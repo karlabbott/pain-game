@@ -1,0 +1,909 @@
+{
+  "name": "PAIN 3",
+  "subtitle": "Every door is a mistake.",
+  "startRoom": "room-1",
+  "masterKey": true,
+  "rooms": [
+    {
+      "id": "the-pit",
+      "num": 24,
+      "type": "death",
+      "title": "The Pit",
+      "isDeath": true,
+      "doors": []
+    },
+    {
+      "id": "freedom",
+      "num": 51,
+      "type": "outside",
+      "title": "Freedom",
+      "isWin": true,
+      "doors": [
+        {
+          "wall": "top",
+          "target": "room-1"
+        }
+      ]
+    },
+    {
+      "id": "room-1",
+      "num": 1,
+      "type": "living-room",
+      "title": "The Entrance",
+      "doors": [
+        {
+          "wall": "top",
+          "target": "room-49"
+        },
+        {
+          "wall": "right",
+          "target": "room-15"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-20"
+        },
+        {
+          "wall": "left",
+          "target": "the-pit"
+        },
+        {
+          "wall": "top",
+          "target": "freedom",
+          "hidden": true
+        }
+      ]
+    },
+    {
+      "id": "room-2",
+      "num": 2,
+      "type": "crawlspace",
+      "title": "Low Passage",
+      "doors": [
+        {
+          "wall": "bottom",
+          "target": "room-8"
+        }
+      ]
+    },
+    {
+      "id": "room-3",
+      "num": 3,
+      "type": "stone-hall",
+      "title": "Granite Cell",
+      "doors": [
+        {
+          "wall": "left",
+          "target": "room-31"
+        },
+        {
+          "wall": "right",
+          "target": "room-44"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-42"
+        }
+      ]
+    },
+    {
+      "id": "room-4",
+      "num": 4,
+      "type": "library",
+      "title": "Old Library",
+      "doors": [
+        {
+          "wall": "top",
+          "target": "room-6"
+        },
+        {
+          "wall": "top",
+          "target": "room-25"
+        },
+        {
+          "wall": "top",
+          "target": "room-22"
+        },
+        {
+          "wall": "right",
+          "target": "room-27"
+        },
+        {
+          "wall": "right",
+          "target": "room-34"
+        },
+        {
+          "wall": "right",
+          "target": "room-33"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-2"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-8"
+        },
+        {
+          "wall": "left",
+          "target": "the-pit"
+        },
+        {
+          "wall": "left",
+          "target": "room-31"
+        }
+      ]
+    },
+    {
+      "id": "room-5",
+      "num": 5,
+      "type": "courtyard",
+      "title": "Open Court",
+      "doors": [
+        {
+          "wall": "left",
+          "target": "room-16"
+        },
+        {
+          "wall": "right",
+          "target": "room-13"
+        }
+      ]
+    },
+    {
+      "id": "room-6",
+      "num": 6,
+      "type": "dungeon",
+      "title": "The Deep Cell",
+      "doors": [
+        {
+          "wall": "left",
+          "target": "room-40"
+        },
+        {
+          "wall": "right",
+          "target": "the-pit"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-25"
+        }
+      ]
+    },
+    {
+      "id": "room-7",
+      "num": 7,
+      "type": "living-room",
+      "title": "Old Quarter",
+      "doors": [
+        {
+          "wall": "left",
+          "target": "room-45"
+        },
+        {
+          "wall": "right",
+          "target": "room-12"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-31"
+        }
+      ]
+    },
+    {
+      "id": "room-8",
+      "num": 8,
+      "type": "crawlspace",
+      "title": "Cramped Cell",
+      "doors": [
+        {
+          "wall": "top",
+          "target": "room-34"
+        },
+        {
+          "wall": "right",
+          "target": "the-pit"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-40"
+        },
+        {
+          "wall": "left",
+          "target": "room-38"
+        }
+      ]
+    },
+    {
+      "id": "room-9",
+      "num": 9,
+      "type": "stone-hall",
+      "title": "Stone Vault",
+      "doors": [
+        {
+          "wall": "top",
+          "target": "room-33"
+        },
+        {
+          "wall": "right",
+          "target": "room-47"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-8"
+        },
+        {
+          "wall": "left",
+          "target": "room-2"
+        }
+      ]
+    },
+    {
+      "id": "room-10",
+      "num": 10,
+      "type": "library",
+      "title": "Dusty Study",
+      "doors": [
+        {
+          "wall": "left",
+          "target": "room-31"
+        },
+        {
+          "wall": "right",
+          "target": "the-pit"
+        }
+      ]
+    },
+    {
+      "id": "room-11",
+      "num": 11,
+      "type": "courtyard",
+      "title": "Sky Room",
+      "doors": [
+        {
+          "wall": "bottom",
+          "target": "the-pit"
+        }
+      ]
+    },
+    {
+      "id": "room-12",
+      "num": 12,
+      "type": "hallway",
+      "title": "Dim Hallway",
+      "doors": [
+        {
+          "wall": "left",
+          "target": "room-19"
+        },
+        {
+          "wall": "right",
+          "target": "room-31"
+        }
+      ]
+    },
+    {
+      "id": "room-13",
+      "num": 13,
+      "type": "living-room",
+      "title": "Worn Chamber",
+      "doors": [
+        {
+          "wall": "left",
+          "target": "room-28"
+        },
+        {
+          "wall": "right",
+          "target": "room-31"
+        }
+      ]
+    },
+    {
+      "id": "room-14",
+      "num": 14,
+      "type": "crawlspace",
+      "title": "The Crawl",
+      "doors": [
+        {
+          "wall": "bottom",
+          "target": "room-31"
+        }
+      ]
+    },
+    {
+      "id": "room-15",
+      "num": 15,
+      "type": "stone-hall",
+      "title": "Stone Chamber",
+      "doors": [
+        {
+          "wall": "bottom",
+          "target": "room-17"
+        }
+      ]
+    },
+    {
+      "id": "room-16",
+      "num": 16,
+      "type": "library",
+      "title": "Book Room",
+      "doors": [
+        {
+          "wall": "top",
+          "target": "room-30"
+        },
+        {
+          "wall": "right",
+          "target": "room-21"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-18"
+        },
+        {
+          "wall": "left",
+          "target": "room-28"
+        }
+      ]
+    },
+    {
+      "id": "room-17",
+      "num": 17,
+      "type": "courtyard",
+      "title": "Moonlit Court",
+      "doors": [
+        {
+          "wall": "left",
+          "target": "room-15"
+        },
+        {
+          "wall": "right",
+          "target": "room-39"
+        }
+      ]
+    },
+    {
+      "id": "room-18",
+      "num": 18,
+      "type": "hallway",
+      "title": "Side Passage",
+      "doors": [
+        {
+          "wall": "left",
+          "target": "room-30"
+        },
+        {
+          "wall": "right",
+          "target": "room-28"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-32"
+        }
+      ]
+    },
+    {
+      "id": "room-19",
+      "num": 19,
+      "type": "living-room",
+      "title": "The Portal Room",
+      "doors": [
+        {
+          "wall": "left",
+          "target": "room-20"
+        },
+        {
+          "wall": "right",
+          "target": "room-7"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-4"
+        }
+      ],
+      "hasPortals": true,
+      "portals": [
+        {
+          "x": "top-left",
+          "target": "room-29",
+          "holdTime": 0
+        },
+        {
+          "x": "bottom-right",
+          "target": "room-7",
+          "holdTime": 0
+        }
+      ]
+    },
+    {
+      "id": "room-20",
+      "num": 20,
+      "type": "crawlspace",
+      "title": "Tight Space",
+      "doors": [
+        {
+          "wall": "left",
+          "target": "room-4"
+        },
+        {
+          "wall": "right",
+          "target": "room-6"
+        }
+      ]
+    },
+    {
+      "id": "room-21",
+      "num": 21,
+      "type": "stone-hall",
+      "title": "Gray Hall",
+      "doors": [
+        {
+          "wall": "top",
+          "target": "room-8"
+        },
+        {
+          "wall": "right",
+          "target": "room-26"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-37"
+        },
+        {
+          "wall": "left",
+          "target": "room-36"
+        }
+      ]
+    },
+    {
+      "id": "room-22",
+      "num": 22,
+      "type": "library",
+      "title": "Archive",
+      "doors": [
+        {
+          "wall": "bottom",
+          "target": "room-27"
+        }
+      ]
+    },
+    {
+      "id": "room-23",
+      "num": 23,
+      "type": "courtyard",
+      "title": "The Clearing",
+      "doors": [
+        {
+          "wall": "bottom",
+          "target": "room-38"
+        }
+      ]
+    },
+    {
+      "id": "room-25",
+      "num": 25,
+      "type": "living-room",
+      "title": "Quiet Room",
+      "doors": [
+        {
+          "wall": "bottom",
+          "target": "room-40"
+        }
+      ]
+    },
+    {
+      "id": "room-26",
+      "num": 26,
+      "type": "crawlspace",
+      "title": "The Squeeze",
+      "doors": [
+        {
+          "wall": "left",
+          "target": "room-29"
+        },
+        {
+          "wall": "right",
+          "target": "room-23"
+        }
+      ]
+    },
+    {
+      "id": "room-27",
+      "num": 27,
+      "type": "stone-hall",
+      "title": "Ancient Room",
+      "doors": [
+        {
+          "wall": "bottom",
+          "target": "room-34"
+        }
+      ]
+    },
+    {
+      "id": "room-28",
+      "num": 28,
+      "type": "library",
+      "title": "Reading Room",
+      "doors": [
+        {
+          "wall": "left",
+          "target": "room-13"
+        },
+        {
+          "wall": "right",
+          "target": "room-31"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-18"
+        }
+      ]
+    },
+    {
+      "id": "room-29",
+      "num": 29,
+      "type": "courtyard",
+      "title": "Inner Yard",
+      "doors": [
+        {
+          "wall": "left",
+          "target": "room-39"
+        },
+        {
+          "wall": "right",
+          "target": "room-47"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-15"
+        }
+      ]
+    },
+    {
+      "id": "room-30",
+      "num": 30,
+      "type": "hallway",
+      "title": "Narrow Pass",
+      "doors": [
+        {
+          "wall": "left",
+          "target": "room-35"
+        },
+        {
+          "wall": "right",
+          "target": "room-18"
+        }
+      ]
+    },
+    {
+      "id": "room-31",
+      "num": 31,
+      "type": "living-room",
+      "title": "Abandoned Room",
+      "doors": [
+        {
+          "wall": "left",
+          "target": "room-32"
+        },
+        {
+          "wall": "right",
+          "target": "room-14"
+        }
+      ]
+    },
+    {
+      "id": "room-32",
+      "num": 32,
+      "type": "crawlspace",
+      "title": "Low Passage",
+      "doors": [
+        {
+          "wall": "bottom",
+          "target": "room-35"
+        }
+      ]
+    },
+    {
+      "id": "room-33",
+      "num": 33,
+      "type": "stone-hall",
+      "title": "Granite Cell",
+      "doors": [
+        {
+          "wall": "top",
+          "target": "room-4"
+        },
+        {
+          "wall": "right",
+          "target": "room-12"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-31"
+        },
+        {
+          "wall": "left",
+          "target": "room-9"
+        }
+      ]
+    },
+    {
+      "id": "room-34",
+      "num": 34,
+      "type": "library",
+      "title": "Old Library",
+      "doors": [
+        {
+          "wall": "bottom",
+          "target": "room-2"
+        }
+      ]
+    },
+    {
+      "id": "room-35",
+      "num": 35,
+      "type": "courtyard",
+      "title": "Open Court",
+      "doors": [
+        {
+          "wall": "bottom",
+          "target": "room-36"
+        }
+      ]
+    },
+    {
+      "id": "room-36",
+      "num": 36,
+      "type": "hallway",
+      "title": "Dark Corridor",
+      "doors": [
+        {
+          "wall": "bottom",
+          "target": "room-37"
+        }
+      ]
+    },
+    {
+      "id": "room-37",
+      "num": 37,
+      "type": "living-room",
+      "title": "Old Quarter",
+      "doors": [
+        {
+          "wall": "left",
+          "target": "room-8"
+        },
+        {
+          "wall": "right",
+          "target": "room-38"
+        }
+      ]
+    },
+    {
+      "id": "room-38",
+      "num": 38,
+      "type": "crawlspace",
+      "title": "Cramped Cell",
+      "doors": [
+        {
+          "wall": "left",
+          "target": "room-8"
+        },
+        {
+          "wall": "right",
+          "target": "room-39"
+        }
+      ]
+    },
+    {
+      "id": "room-39",
+      "num": 39,
+      "type": "stone-hall",
+      "title": "Stone Vault",
+      "doors": [
+        {
+          "wall": "left",
+          "target": "room-17"
+        },
+        {
+          "wall": "right",
+          "target": "room-34"
+        }
+      ]
+    },
+    {
+      "id": "room-40",
+      "num": 40,
+      "type": "dungeon",
+      "title": "The Dark Prison",
+      "doors": [
+        {
+          "wall": "top",
+          "target": "room-6"
+        },
+        {
+          "wall": "right",
+          "target": "room-22"
+        },
+        {
+          "wall": "bottom",
+          "target": "the-pit"
+        },
+        {
+          "wall": "left",
+          "target": "room-25"
+        }
+      ]
+    },
+    {
+      "id": "room-41",
+      "num": 41,
+      "type": "courtyard",
+      "title": "Sky Room",
+      "doors": [
+        {
+          "wall": "left",
+          "target": "room-5"
+        },
+        {
+          "wall": "right",
+          "target": "room-31"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-46"
+        }
+      ]
+    },
+    {
+      "id": "room-42",
+      "num": 42,
+      "type": "hallway",
+      "title": "Dim Hallway",
+      "doors": [
+        {
+          "wall": "bottom",
+          "target": "room-43"
+        }
+      ]
+    },
+    {
+      "id": "room-43",
+      "num": 43,
+      "type": "living-room",
+      "title": "Worn Chamber",
+      "doors": [
+        {
+          "wall": "bottom",
+          "target": "room-44"
+        }
+      ]
+    },
+    {
+      "id": "room-44",
+      "num": 44,
+      "type": "crawlspace",
+      "title": "The Crawl",
+      "doors": [
+        {
+          "wall": "bottom",
+          "target": "room-45"
+        }
+      ]
+    },
+    {
+      "id": "room-45",
+      "num": 45,
+      "type": "stone-hall",
+      "title": "Stone Chamber",
+      "doors": [
+        {
+          "wall": "bottom",
+          "target": "room-46"
+        }
+      ]
+    },
+    {
+      "id": "room-46",
+      "num": 46,
+      "type": "library",
+      "title": "Book Room",
+      "doors": [
+        {
+          "wall": "bottom",
+          "target": "room-50"
+        }
+      ]
+    },
+    {
+      "id": "room-47",
+      "num": 47,
+      "type": "courtyard",
+      "title": "Moonlit Court",
+      "doors": [
+        {
+          "wall": "left",
+          "target": "room-4"
+        },
+        {
+          "wall": "right",
+          "target": "room-49"
+        }
+      ]
+    },
+    {
+      "id": "room-48",
+      "num": 48,
+      "type": "hallway",
+      "title": "Side Passage",
+      "doors": [
+        {
+          "wall": "left",
+          "target": "room-3"
+        },
+        {
+          "wall": "right",
+          "target": "room-14"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-50"
+        }
+      ]
+    },
+    {
+      "id": "room-49",
+      "num": 49,
+      "type": "living-room",
+      "title": "Still Room",
+      "doors": [
+        {
+          "wall": "left",
+          "target": "room-1",
+          "locked": true
+        },
+        {
+          "wall": "right",
+          "target": "room-27"
+        }
+      ]
+    },
+    {
+      "id": "room-50",
+      "num": 50,
+      "type": "crawlspace",
+      "title": "The Hidden Vault",
+      "doors": [
+        {
+          "wall": "top",
+          "target": "room-41"
+        },
+        {
+          "wall": "top",
+          "target": "room-44"
+        },
+        {
+          "wall": "right",
+          "target": "room-3"
+        },
+        {
+          "wall": "right",
+          "target": "room-31"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-25"
+        },
+        {
+          "wall": "left",
+          "target": "room-10"
+        },
+        {
+          "wall": "left",
+          "target": "room-11"
+        }
+      ],
+      "hasKey": true
+    }
+  ]
+}
