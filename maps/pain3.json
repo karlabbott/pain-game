@@ -804,6 +804,10 @@
         {
           "wall": "right",
           "target": "room-8"
+        },
+        {
+          "wall": "bottom",
+          "target": "room-10"
         }
       ]
     },
