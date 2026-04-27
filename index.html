@@ -574,7 +574,7 @@ window.addEventListener('keydown', e => {
   if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)) e.preventDefault();
   if (!S.started) return; // must click a map button to start
   if (S.dead && (e.key==='r'||e.key==='R')) { restartGame(); return; }
-  if (S.won && (e.key==='r'||e.key==='R')) { restartGame(); return; }
+  if (S.won && (e.key==='r'||e.key==='R')) { returnToTitle(); return; }
   S.keys[e.key]=true;
 });
 window.addEventListener('keyup', e => { S.keys[e.key]=false; });
@@ -588,7 +588,8 @@ if (isMobile) {
   canvas.addEventListener('touchstart', e => {
     e.preventDefault();
     if (!S.started || S.trans || S.intro) return;
-    if (S.dead || S.won) { restartGame(); return; }
+    if (S.dead) { restartGame(); return; }
+    if (S.won) { returnToTitle(); return; }
     const rect = canvas.getBoundingClientRect();
     const scaleX = GW / rect.width, scaleY = GH / rect.height;
     const tx = (e.touches[0].clientX - rect.left) * scaleX;
@@ -728,6 +729,30 @@ function restartGame() {
   updateUI();
   if (audioCtx) { startRoomMusic(); shiftDrone('stone-hall'); }
 }
+
+function returnToTitle() {
+  S.started = false;
+  S.won = false; S.winTimer = 0;
+  S.dead = false; S.deathTimer = 0;
+  S.intro = false;
+  S.walkTarget = null; S.walkCallback = null;
+  if (melodyTimeout) clearTimeout(melodyTimeout);
+  fadeOutDrone();
+  if (audioCtx) { try { audioCtx.close(); } catch(e){} audioCtx = null; }
+  document.getElementById('title-screen').classList.remove('hidden');
+  document.getElementById('room-name').textContent = '';
+  document.getElementById('step-display').textContent = 'STEPS: 0';
+}
+
+// Pause/resume audio on visibility change (phone lock, tab switch)
+document.addEventListener('visibilitychange', () => {
+  if (!audioCtx) return;
+  if (document.hidden) {
+    audioCtx.suspend();
+  } else {
+    audioCtx.resume();
+  }
+});
 
 // Build map selector on load
 (async function initMapSelector() {
