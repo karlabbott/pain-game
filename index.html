@@ -39,10 +39,7 @@
     pointer-events: none; transition: opacity 0.6s;
   }
   #step-display {
-    position: fixed; bottom: 8px; right: 12px;
-    font-family: 'Cinzel', serif; font-size: 14px; letter-spacing: 3px;
-    color: rgba(200,180,140,0.8); z-index: 5; pointer-events: none;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+    display: none;
   }
   @keyframes pulse { 0%,100% { opacity: 0.4; } 50% { opacity: 0.7; } }
   #map-selector {
@@ -1693,6 +1690,7 @@ function render() {
   drawAmbient(th);
   drawVignette();
   drawKeyUI();
+  drawMoveCounter();
   drawFade();
   drawDeath();
   drawWin();
@@ -1936,6 +1934,23 @@ function drawKeyUI() {
   ctx.fillRect(ux+5,uy+1,1,1); ctx.fillRect(ux+7,uy+1,1,1);
   // Count
   if (S.keyCount > 0) drawDigits(ctx, String(S.keyCount), ux+11, uy-3, 1, '#d4a830');
+}
+
+function drawMoveCounter() {
+  if (!mapConfig.moveLimit) return;
+  const left = Math.max(0, mapConfig.moveLimit - S.steps);
+  const text = 'MOVES: ' + left;
+  ctx.save();
+  ctx.font = '8px monospace';
+  ctx.textAlign = 'right';
+  // Red when 3 or fewer moves remain
+  if (left <= 3) {
+    ctx.fillStyle = 'rgba(255,70,50,0.9)';
+  } else {
+    ctx.fillStyle = 'rgba(200,180,140,0.7)';
+  }
+  ctx.fillText(text, GW - 6, GH - 5);
+  ctx.restore();
 }
 
 function drawChar() {
