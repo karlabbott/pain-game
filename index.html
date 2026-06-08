@@ -1836,19 +1836,19 @@ function drawWallText(rm) {
   if (!rm.wallText) return;
   ctx.save();
   ctx.font = '7px monospace';
-  ctx.textAlign = 'center';
-  // Scratched-into-stone look: dark etch + faint highlight
-  const cx = GW / 2;
+  ctx.textAlign = 'left';
   const lines = rm.wallText.split('\n');
-  const baseY = TILE + 6;
+  // Draw on left wall interior, below the top wall
+  const lx = TILE + 4;
+  const baseY = TILE * 2 + 8;
   for (let i = 0; i < lines.length; i++) {
-    const ly = baseY + i * 9;
+    const ly = baseY + i * 10;
     // Shadow/carve
-    ctx.fillStyle = 'rgba(0,0,0,0.4)';
-    ctx.fillText(lines[i], cx + 1, ly + 1);
-    // Main text — faint scratched look
-    ctx.fillStyle = 'rgba(180,170,140,0.35)';
-    ctx.fillText(lines[i], cx, ly);
+    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+    ctx.fillText(lines[i], lx + 1, ly + 1);
+    // Main text — scratched into stone
+    ctx.fillStyle = 'rgba(200,190,160,0.55)';
+    ctx.fillText(lines[i], lx, ly);
   }
   ctx.restore();
 }
