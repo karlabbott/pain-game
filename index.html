@@ -1226,7 +1226,7 @@ function sfxFootstep() {
   filter.type = 'lowpass';
   filter.frequency.value = 800;
   const gain = audioCtx.createGain();
-  gain.gain.setValueAtTime(0.04, t);
+  gain.gain.setValueAtTime(0.18, t);
   gain.gain.exponentialRampToValueAtTime(0.001, t + 0.055);
   src.connect(filter); filter.connect(gain); gain.connect(masterGain);
   src.start(t); src.stop(t + 0.06);
@@ -1245,7 +1245,7 @@ function sfxDoorCreak() {
   osc.frequency.linearRampToValueAtTime(96, t + 0.2);
   filter.type = 'lowpass'; filter.frequency.value = 420;
   gain.gain.setValueAtTime(0, t);
-  gain.gain.linearRampToValueAtTime(0.08, t + 0.03);
+  gain.gain.linearRampToValueAtTime(0.28, t + 0.03);
   gain.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
   osc.connect(filter); filter.connect(gain); gain.connect(masterGain);
   osc.start(t); osc.stop(t + 0.24);
@@ -1259,7 +1259,7 @@ function sfxDoorCreak() {
   const nf = audioCtx.createBiquadFilter();
   nf.type = 'bandpass'; nf.frequency.value = 700; nf.Q.value = 1.2;
   const ng = audioCtx.createGain();
-  ng.gain.setValueAtTime(0.018, t);
+  ng.gain.setValueAtTime(0.06, t);
   ng.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
   src.connect(nf); nf.connect(ng); ng.connect(masterGain);
   src.start(t + 0.01); src.stop(t + 0.2);
@@ -2203,19 +2203,22 @@ function drawTorches() {
 function drawWallText(rm) {
   if (!rm.wallText) return;
   ctx.save();
-  ctx.font = '7px monospace';
+  ctx.font = 'bold 8px monospace';
   ctx.textAlign = 'left';
   const lines = rm.wallText.split('\n');
-  // Draw on left wall interior, below the top wall
   const lx = TILE + 4;
-  const baseY = TILE * 2 + 8;
+  const baseY = TILE * 2 + 10;
+  // Dark backing for readability
+  const maxW = Math.max(...lines.map(l => ctx.measureText(l).width));
+  ctx.fillStyle = 'rgba(0,0,0,0.45)';
+  ctx.fillRect(lx - 3, baseY - 10, maxW + 6, lines.length * 11 + 4);
   for (let i = 0; i < lines.length; i++) {
-    const ly = baseY + i * 10;
-    // Shadow/carve
-    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+    const ly = baseY + i * 11;
+    // Shadow
+    ctx.fillStyle = 'rgba(0,0,0,0.7)';
     ctx.fillText(lines[i], lx + 1, ly + 1);
-    // Main text — scratched into stone
-    ctx.fillStyle = 'rgba(200,190,160,0.55)';
+    // Main text — bright scratched look
+    ctx.fillStyle = 'rgba(220,210,180,0.85)';
     ctx.fillText(lines[i], lx, ly);
   }
   ctx.restore();
@@ -2309,13 +2312,16 @@ function drawMoveCounter() {
   const left = Math.max(0, mapConfig.moveLimit - S.steps);
   const text = 'MOVES: ' + left;
   ctx.save();
-  ctx.font = '8px monospace';
+  ctx.font = 'bold 9px monospace';
   ctx.textAlign = 'right';
-  // Red when 3 or fewer moves remain
+  const tw = ctx.measureText(text).width;
+  // Dark backing
+  ctx.fillStyle = 'rgba(0,0,0,0.5)';
+  ctx.fillRect(GW - tw - 12, GH - 15, tw + 8, 13);
   if (left <= 3) {
-    ctx.fillStyle = 'rgba(255,70,50,0.9)';
+    ctx.fillStyle = 'rgba(255,70,50,0.95)';
   } else {
-    ctx.fillStyle = 'rgba(200,180,140,0.7)';
+    ctx.fillStyle = 'rgba(220,200,160,0.9)';
   }
   ctx.fillText(text, GW - 6, GH - 5);
   ctx.restore();
