@@ -1469,10 +1469,11 @@ function startTrans(targetId, exitWall) {
   S.nextRoom=targetId; S.nextWall=exitWall;
   S.steps++;
   // Move limit: redirect to punishment room (skip death/win rooms)
-  const tgt = roomMap[targetId];
-  if (mapConfig.moveLimit && S.steps > mapConfig.moveLimit && mapConfig.moveLimitRoom
-      && tgt && !tgt.isDeath && !tgt.isWin) {
-    S.nextRoom = mapConfig.moveLimitRoom;
+  if (mapConfig.moveLimit && S.steps > mapConfig.moveLimit && mapConfig.moveLimitRoom) {
+    const tgt = roomMap[targetId];
+    if (!tgt || (!tgt.isDeath && !tgt.isWin)) {
+      S.nextRoom = mapConfig.moveLimitRoom;
+    }
   }
   updateStepDisplay();
 }
