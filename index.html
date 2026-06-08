@@ -1494,17 +1494,17 @@ function spawnDustParticle() {
 }
 
 function spawnEmberParticle(x, y) {
-  const life = 24 + Math.random() * 18;
-  const colors = ['#ffb347', '#ff8c33', '#ffd36b'];
+  const life = 30 + Math.random() * 24;
+  const colors = ['#ffb347', '#ff8c33', '#ffd36b', '#ffdd77'];
   spawnParticle({
     kind: 'ember',
-    x: x + (Math.random() - 0.5) * 3,
-    y: y - 1,
-    vx: (Math.random() - 0.5) * 0.12,
-    vy: -0.18 - Math.random() * 0.12,
+    x: x + (Math.random() - 0.5) * 6,
+    y: y - 2,
+    vx: (Math.random() - 0.5) * 0.2,
+    vy: -0.22 - Math.random() * 0.15,
     life, maxLife: life,
-    size: 1 + (Math.random() > 0.6 ? 1 : 0),
-    alpha: 0.35 + Math.random() * 0.2,
+    size: 1 + (Math.random() > 0.4 ? 1 : 0),
+    alpha: 0.5 + Math.random() * 0.3,
     color: colors[Math.floor(Math.random() * colors.length)],
   });
 }
@@ -1588,13 +1588,14 @@ function updateParticles() {
     S.particleDripTimer = 24;
   }
 
-  if (rm.type === 'stone-hall' || rm.type === 'library') {
+  if (['stone-hall', 'library', 'living-room', 'dungeon'].includes(rm.type)) {
     S.particleEmberTimer -= 1;
     if (S.particleEmberTimer <= 0) {
       getTorchPositions(rm.type).forEach(t => {
-        if (Math.random() > 0.2) spawnEmberParticle(t.x, t.y);
+        spawnEmberParticle(t.x, t.y);
+        if (Math.random() > 0.4) spawnEmberParticle(t.x, t.y);
       });
-      S.particleEmberTimer = 6 + Math.random() * 10;
+      S.particleEmberTimer = 3 + Math.random() * 5;
     }
   } else {
     S.particleEmberTimer = 8;
@@ -2175,20 +2176,34 @@ function drawTorches() {
   torches.forEach((t, i) => {
     const pulse = 0.85 + Math.sin(S.time * 9 + i * 1.7) * 0.12 + Math.sin(S.time * 17 + i) * 0.08;
     const flameH = 5 + pulse * 2;
-    const glowR = 16 + Math.sin(S.time * 5 + i) * 2;
+
+    // Large room-filling glow
+    const bigR = 80 + Math.sin(S.time * 5 + i) * 6;
+    const bg = ctx.createRadialGradient(t.x, t.y + 10, 0, t.x, t.y + 10, bigR);
+    bg.addColorStop(0, `rgba(255,180,80,${0.10 + pulse * 0.04})`);
+    bg.addColorStop(0.3, `rgba(255,140,50,${0.06 + pulse * 0.02})`);
+    bg.addColorStop(0.7, `rgba(255,100,30,${0.02 + pulse * 0.01})`);
+    bg.addColorStop(1, 'transparent');
+    ctx.fillStyle = bg;
+    ctx.fillRect(t.x - bigR, t.y - bigR, bigR * 2, bigR * 2);
+
+    // Bright inner glow
+    const glowR = 20 + Math.sin(S.time * 7 + i) * 3;
     const g = ctx.createRadialGradient(t.x, t.y + 1, 0, t.x, t.y + 1, glowR);
-    g.addColorStop(0, `rgba(255,190,90,${0.12 + pulse * 0.05})`);
-    g.addColorStop(0.55, `rgba(255,120,40,${0.05 + pulse * 0.03})`);
+    g.addColorStop(0, `rgba(255,210,120,${0.25 + pulse * 0.08})`);
+    g.addColorStop(0.4, `rgba(255,150,60,${0.12 + pulse * 0.04})`);
     g.addColorStop(1, 'transparent');
     ctx.fillStyle = g;
     ctx.fillRect(t.x - glowR, t.y - glowR, glowR * 2, glowR * 2);
 
+    // Bracket
     ctx.fillStyle = '#4a3824';
     ctx.fillRect(t.x - 1, t.y + 5, 2, 8);
     ctx.fillRect(t.x - 3, t.y + 7, 6, 2);
     ctx.fillStyle = '#2a1c12';
     ctx.fillRect(t.x - 4, t.y + 8, 8, 1);
 
+    // Flame
     const flameColors = ['#ff6a24', '#ff9a2e', '#ffd060'];
     const phase = Math.floor(S.time * 14 + i * 2) % flameColors.length;
     ctx.fillStyle = flameColors[phase];
