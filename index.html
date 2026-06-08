@@ -1465,7 +1465,24 @@ function update() {
 function startTrans(targetId, exitWall) {
   S.trans=true; S.tPhase='out'; S.fadeA=0;
   S.nextRoom=targetId; S.nextWall=exitWall;
-  S.steps++; document.getElementById('step-display').textContent='STEPS: '+S.steps;
+  S.steps++;
+  // Move limit: redirect to punishment room
+  if (mapConfig.moveLimit && S.steps > mapConfig.moveLimit && mapConfig.moveLimitRoom) {
+    S.nextRoom = mapConfig.moveLimitRoom;
+  }
+  updateStepDisplay();
+}
+
+function updateStepDisplay() {
+  const el = document.getElementById('step-display');
+  if (mapConfig.moveLimit) {
+    const left = Math.max(0, mapConfig.moveLimit - S.steps);
+    el.textContent = 'MOVES LEFT: ' + left;
+    el.style.color = left <= 3 ? 'rgba(255,80,60,0.7)' : 'rgba(160,140,110,0.25)';
+  } else {
+    el.textContent = 'STEPS: ' + S.steps;
+    el.style.color = 'rgba(160,140,110,0.25)';
+  }
 }
 
 function updateTrans() {
