@@ -1216,20 +1216,20 @@ function sfxPickup() {
 function sfxFootstep() {
   if (!audioCtx) return;
   const t = audioCtx.currentTime;
-  const len = Math.floor(audioCtx.sampleRate * 0.05);
+  const len = Math.floor(audioCtx.sampleRate * 0.06);
   const buf = audioCtx.createBuffer(1, len, audioCtx.sampleRate);
   const d = buf.getChannelData(0);
-  for (let i=0; i<len; i++) d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (audioCtx.sampleRate * 0.012));
+  for (let i=0; i<len; i++) d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (audioCtx.sampleRate * 0.015));
   const src = audioCtx.createBufferSource();
   src.buffer = buf;
   const filter = audioCtx.createBiquadFilter();
   filter.type = 'lowpass';
-  filter.frequency.value = 800;
+  filter.frequency.value = 900;
   const gain = audioCtx.createGain();
-  gain.gain.setValueAtTime(0.18, t);
-  gain.gain.exponentialRampToValueAtTime(0.001, t + 0.055);
-  src.connect(filter); filter.connect(gain); gain.connect(masterGain);
-  src.start(t); src.stop(t + 0.06);
+  gain.gain.setValueAtTime(0.6, t);
+  gain.gain.exponentialRampToValueAtTime(0.001, t + 0.07);
+  src.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination);
+  src.start(t); src.stop(t + 0.08);
 }
 
 function sfxDoorCreak() {
@@ -1240,29 +1240,29 @@ function sfxDoorCreak() {
   const filter = audioCtx.createBiquadFilter();
   const gain = audioCtx.createGain();
   osc.type = 'sawtooth';
-  osc.frequency.setValueAtTime(88, t);
-  osc.frequency.linearRampToValueAtTime(118, t + 0.08);
-  osc.frequency.linearRampToValueAtTime(96, t + 0.2);
-  filter.type = 'lowpass'; filter.frequency.value = 420;
+  osc.frequency.setValueAtTime(80, t);
+  osc.frequency.linearRampToValueAtTime(130, t + 0.1);
+  osc.frequency.linearRampToValueAtTime(90, t + 0.3);
+  filter.type = 'lowpass'; filter.frequency.value = 500;
   gain.gain.setValueAtTime(0, t);
-  gain.gain.linearRampToValueAtTime(0.28, t + 0.03);
-  gain.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
-  osc.connect(filter); filter.connect(gain); gain.connect(masterGain);
-  osc.start(t); osc.stop(t + 0.24);
+  gain.gain.linearRampToValueAtTime(0.7, t + 0.04);
+  gain.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+  osc.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination);
+  osc.start(t); osc.stop(t + 0.38);
 
-  const len = Math.floor(audioCtx.sampleRate * 0.2);
+  const len = Math.floor(audioCtx.sampleRate * 0.3);
   const buf = audioCtx.createBuffer(1, len, audioCtx.sampleRate);
-  const d = buf.getChannelData(0);
-  for (let i=0; i<len; i++) d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (audioCtx.sampleRate * 0.04));
+  const dd = buf.getChannelData(0);
+  for (let i=0; i<len; i++) dd[i] = (Math.random() * 2 - 1) * Math.exp(-i / (audioCtx.sampleRate * 0.06));
   const src = audioCtx.createBufferSource();
   src.buffer = buf;
   const nf = audioCtx.createBiquadFilter();
-  nf.type = 'bandpass'; nf.frequency.value = 700; nf.Q.value = 1.2;
+  nf.type = 'bandpass'; nf.frequency.value = 800; nf.Q.value = 1.5;
   const ng = audioCtx.createGain();
-  ng.gain.setValueAtTime(0.06, t);
-  ng.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
-  src.connect(nf); nf.connect(ng); ng.connect(masterGain);
-  src.start(t + 0.01); src.stop(t + 0.2);
+  ng.gain.setValueAtTime(0.2, t);
+  ng.gain.exponentialRampToValueAtTime(0.001, t + 0.28);
+  src.connect(nf); nf.connect(ng); ng.connect(audioCtx.destination);
+  src.start(t + 0.01); src.stop(t + 0.32);
 }
 
 function sfxUnlock() {
