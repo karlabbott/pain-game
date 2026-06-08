@@ -78,7 +78,8 @@
           "target": "freedom",
           "hidden": true
         }
-      ]
+      ],
+      "wallText": "The low numbers\nare always safer."
     },
     {
       "id": "room-2",
@@ -106,7 +107,8 @@
           "wall": "right",
           "target": "room-9"
         }
-      ]
+      ],
+      "wallText": "Room 9 leads\nto freedom."
     },
     {
       "id": "room-4",
@@ -150,7 +152,8 @@
           "wall": "right",
           "target": "room-25"
         }
-      ]
+      ],
+      "wallText": "Never go back\nthe way you came."
     },
     {
       "id": "room-6",
@@ -198,7 +201,8 @@
           "wall": "left",
           "target": "room-33"
         }
-      ]
+      ],
+      "wallText": "Seek the highest\ndoor always."
     },
     {
       "id": "room-9",
@@ -230,7 +234,8 @@
           "wall": "right",
           "target": "room-37"
         }
-      ]
+      ],
+      "wallText": "Avoid 14 at\nall costs."
     },
     {
       "id": "room-11",
@@ -278,7 +283,8 @@
           "wall": "right",
           "target": "room-19"
         }
-      ]
+      ],
+      "wallText": "The key hides in\nthe lowest room."
     },
     {
       "id": "room-14",
@@ -314,7 +320,8 @@
           "wall": "bottom",
           "target": "room-22"
         }
-      ]
+      ],
+      "wallText": "Door 22 is\nyour salvation."
     },
     {
       "id": "room-16",
@@ -382,7 +389,8 @@
           "wall": "top",
           "target": "room-1"
         }
-      ]
+      ],
+      "wallText": "Stay here.\nTurn back."
     },
     {
       "id": "room-21",
@@ -402,7 +410,8 @@
           "wall": "bottom",
           "target": "room-41"
         }
-      ]
+      ],
+      "wallText": "The courtyard\nholds the answer."
     },
     {
       "id": "room-22",
@@ -474,7 +483,8 @@
           "wall": "left",
           "target": "room-40"
         }
-      ]
+      ],
+      "wallText": "Through 40 lies\nthe shortest path."
     },
     {
       "id": "room-27",
@@ -506,7 +516,8 @@
           "wall": "right",
           "target": "the-trap"
         }
-      ]
+      ],
+      "wallText": "Trust the even\nnumbers."
     },
     {
       "id": "room-30",
@@ -646,7 +657,8 @@
           "wall": "top",
           "target": "room-8"
         }
-      ]
+      ],
+      "wallText": "All paths from\nhere are equal."
     },
     {
       "id": "room-38",
@@ -698,7 +710,8 @@
           "wall": "left",
           "target": "the-pit"
         }
-      ]
+      ],
+      "wallText": "Door 15 will\nset you free."
     },
     {
       "id": "room-41",
@@ -742,7 +755,8 @@
           "wall": "left",
           "target": "room-26"
         }
-      ]
+      ],
+      "wallText": "Go up."
     },
     {
       "id": "room-43",
@@ -786,7 +800,8 @@
           "wall": "top",
           "target": "room-19"
         }
-      ]
+      ],
+      "wallText": "The walls\nare watching."
     },
     {
       "id": "room-45",
@@ -874,7 +889,8 @@
           "wall": "top",
           "target": "room-48"
         }
-      ]
+      ],
+      "wallText": "Room 2 holds\nnothing of value."
     },
     {
       "id": "room-50",
@@ -903,7 +919,8 @@
           "target": "room-48"
         }
       ],
-      "hasKey": true
+      "hasKey": true,
+      "wallText": "You already\npassed the exit."
     }
   ]
 }
