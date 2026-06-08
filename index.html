@@ -738,6 +738,8 @@ function startGame() {
   S.started=true;
   S.intro=true; S.introTimer=0; S.introPhase='outside';
   S.room = mapConfig.startRoom || 'room-1';
+  S.steps=0;
+  updateStepDisplay();
   document.getElementById('title-screen').classList.add('hidden');
   if (isMobile) {
     document.getElementById('quit-btn').style.display = 'block';
@@ -761,7 +763,7 @@ function restartGame() {
   S.tableTimer=0; S.tableTouching=false;
   S.walkTarget=null; S.walkCallback=null;
   recomputeLockedPairs();
-  document.getElementById('step-display').textContent='STEPS: 0';
+  updateStepDisplay();
   updateUI();
   if (audioCtx) { startRoomMusic(); shiftDrone('stone-hall'); }
 }
@@ -778,7 +780,7 @@ function returnToTitle() {
   document.getElementById('title-screen').classList.remove('hidden');
   document.getElementById('quit-btn').style.display = 'none';
   document.getElementById('room-name').textContent = '';
-  document.getElementById('step-display').textContent = 'STEPS: 0';
+  document.getElementById('step-display').textContent = '';
 }
 
 // Pause/resume audio on visibility change (phone lock, tab switch)
@@ -1466,8 +1468,10 @@ function startTrans(targetId, exitWall) {
   S.trans=true; S.tPhase='out'; S.fadeA=0;
   S.nextRoom=targetId; S.nextWall=exitWall;
   S.steps++;
-  // Move limit: redirect to punishment room
-  if (mapConfig.moveLimit && S.steps > mapConfig.moveLimit && mapConfig.moveLimitRoom) {
+  // Move limit: redirect to punishment room (skip death/win rooms)
+  const tgt = roomMap[targetId];
+  if (mapConfig.moveLimit && S.steps > mapConfig.moveLimit && mapConfig.moveLimitRoom
+      && tgt && !tgt.isDeath && !tgt.isWin) {
     S.nextRoom = mapConfig.moveLimitRoom;
   }
   updateStepDisplay();
@@ -1494,8 +1498,8 @@ function updateTrans() {
       S.px=sp.x; S.py=sp.y; S.dir=sp.dir;
       S.tPhase='in'; updateUI();
       if (audioCtx) { shiftDrone(curRoom().type); }
-      // Check for death room
-      if (curRoom().isDeath) {
+      // Check for death room or soft-lock
+      if (curRoom().isDeath || curRoom().isSoftLock) {
         S.tPhase='in';
       }
       // Check for win room
@@ -1508,7 +1512,7 @@ function updateTrans() {
     if (S.fadeA<=0) {
       S.fadeA=0; S.trans=false;
       // Trigger death after fade-in completes
-      if (curRoom().isDeath && !S.dead) {
+      if ((curRoom().isDeath || curRoom().isSoftLock) && !S.dead) {
         S.dead=true; S.deathTimer=0;
         sfxDeath();
         if (melodyTimeout) clearTimeout(melodyTimeout);
