@@ -1259,7 +1259,7 @@ function sfxFootstep() {
   filter.type = 'lowpass';
   filter.frequency.value = 1200;
   const gain = audioCtx.createGain();
-  gain.gain.setValueAtTime(1.0, t);
+  gain.gain.setValueAtTime(0.4, t);
   gain.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
   src.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination);
   src.start(t); src.stop(t + 0.12);
@@ -1269,7 +1269,7 @@ function sfxFootstep() {
   osc.type = 'sine';
   osc.frequency.setValueAtTime(120, t);
   osc.frequency.exponentialRampToValueAtTime(60, t + 0.06);
-  og.gain.setValueAtTime(0.8, t);
+  og.gain.setValueAtTime(0.3, t);
   og.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
   osc.connect(og); og.connect(audioCtx.destination);
   osc.start(t); osc.stop(t + 0.1);
