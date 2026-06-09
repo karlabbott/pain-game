@@ -1279,43 +1279,41 @@ function sfxDoorCreak() {
   if (!audioCtx) return;
   const t = audioCtx.currentTime;
 
-  // Wooden creak — higher frequency, two sweeping tones for that hinge squeal
-  const osc1 = audioCtx.createOscillator();
-  const osc2 = audioCtx.createOscillator();
-  const filter = audioCtx.createBiquadFilter();
-  const gain = audioCtx.createGain();
-  osc1.type = 'triangle';
-  osc1.frequency.setValueAtTime(320, t);
-  osc1.frequency.linearRampToValueAtTime(480, t + 0.12);
-  osc1.frequency.linearRampToValueAtTime(350, t + 0.25);
-  osc2.type = 'triangle';
-  osc2.frequency.setValueAtTime(340, t);
-  osc2.frequency.linearRampToValueAtTime(520, t + 0.1);
-  osc2.frequency.linearRampToValueAtTime(380, t + 0.3);
-  filter.type = 'bandpass'; filter.frequency.value = 1200; filter.Q.value = 3.0;
-  gain.gain.setValueAtTime(0, t);
-  gain.gain.linearRampToValueAtTime(0.6, t + 0.03);
-  gain.gain.linearRampToValueAtTime(0.3, t + 0.15);
-  gain.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
-  osc1.connect(filter); osc2.connect(filter);
-  filter.connect(gain); gain.connect(audioCtx.destination);
-  osc1.start(t); osc1.stop(t + 0.38);
-  osc2.start(t); osc2.stop(t + 0.38);
+  // Heavy wooden thud — short sine burst decaying fast
+  const thud = audioCtx.createOscillator();
+  const tg = audioCtx.createGain();
+  thud.type = 'sine';
+  thud.frequency.setValueAtTime(180, t);
+  thud.frequency.exponentialRampToValueAtTime(60, t + 0.08);
+  tg.gain.setValueAtTime(0.8, t);
+  tg.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+  thud.connect(tg); tg.connect(audioCtx.destination);
+  thud.start(t); thud.stop(t + 0.15);
 
-  // Woody knock at the start
-  const len = Math.floor(audioCtx.sampleRate * 0.08);
+  // Wood impact noise — short, filtered high
+  const len = Math.floor(audioCtx.sampleRate * 0.04);
   const buf = audioCtx.createBuffer(1, len, audioCtx.sampleRate);
-  const dd = buf.getChannelData(0);
-  for (let i=0; i<len; i++) dd[i] = (Math.random() * 2 - 1) * Math.exp(-i / (audioCtx.sampleRate * 0.008));
+  const d = buf.getChannelData(0);
+  for (let i=0; i<len; i++) d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (audioCtx.sampleRate * 0.005));
   const src = audioCtx.createBufferSource();
   src.buffer = buf;
-  const nf = audioCtx.createBiquadFilter();
-  nf.type = 'bandpass'; nf.frequency.value = 2000; nf.Q.value = 1.0;
-  const ng = audioCtx.createGain();
-  ng.gain.setValueAtTime(0.7, t);
-  ng.gain.exponentialRampToValueAtTime(0.001, t + 0.06);
-  src.connect(nf); nf.connect(ng); ng.connect(audioCtx.destination);
-  src.start(t); src.stop(t + 0.08);
+  const f = audioCtx.createBiquadFilter();
+  f.type = 'bandpass'; f.frequency.value = 3000; f.Q.value = 0.8;
+  const g = audioCtx.createGain();
+  g.gain.setValueAtTime(0.5, t);
+  g.gain.exponentialRampToValueAtTime(0.001, t + 0.04);
+  src.connect(f); f.connect(g); g.connect(audioCtx.destination);
+  src.start(t); src.stop(t + 0.05);
+
+  // Latch click — tiny delayed tick
+  const click = audioCtx.createOscillator();
+  const cg = audioCtx.createGain();
+  click.type = 'square';
+  click.frequency.value = 4000;
+  cg.gain.setValueAtTime(0.4, t + 0.06);
+  cg.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
+  click.connect(cg); cg.connect(audioCtx.destination);
+  click.start(t + 0.06); click.stop(t + 0.1);
 }
 
 function sfxUnlock() {
