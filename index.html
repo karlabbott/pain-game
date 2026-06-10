@@ -700,6 +700,7 @@ const S = {
   vx: 0, vy: 0,
   roomHazard: null, roomTraps: [], windDir: null,
   npcData: null, npcBubbleAlpha: 0,
+  hp: 3, maxHp: 3,
   titleParticles: [], titleDustTimer: 0, titleEmberTimer: 0,
   deathDebris: [], winParticles: [], winParticleTimer: 0,
   visited: {},
@@ -1004,7 +1005,7 @@ function startGame() {
   S.visited[S.room] = { wall: 'bottom', count: 0 };
   S.roomHistory = [roomMap[S.room].num];
   S.steps=0;
-  S.titleTime = 0;
+  S.hp=3; S.maxHp=3;
   clearRoomFeatures();
   refreshRoomFeatures();
   S.footstepTimer=0; resetParticles();
@@ -1027,6 +1028,7 @@ function restartGame() {
   S.dir='down'; S.moving=false; S.aFrame=0; S.aTimer=0;
   S.fadeA=0; S.trans=false; S.tPhase=null;
   S.steps=0; S.keyCount=0; S.pickedKeys={}; S.openedDoors={};
+  S.hp=3; S.maxHp=3;
   S.visited={}; S.visited[S.room]={wall:'bottom', count:0};
   S.roomHistory=[roomMap[S.room].num];
   S.dead=false; S.deathTimer=0; S.blocked=0;
@@ -2145,6 +2147,12 @@ function triggerTrap(trap, moveX, moveY) {
   S.vx = 0; S.vy = 0;
   S.walkTarget = null; S.walkCallback = null;
   sfxBlocked();
+  S.hp--;
+  if (S.hp <= 0) {
+    S.hp = 0;
+    triggerDeathSequence();
+    return;
+  }
   if (mapConfig.moveLimit) {
     S.steps++;
     updateStepDisplay();
@@ -2649,6 +2657,7 @@ function render() {
   drawParticles();
   drawVignette();
   drawKeyUI();
+  drawHearts();
   drawMoveCounter();
   drawHazardIndicator();
   drawNpcBubble();
@@ -3114,6 +3123,42 @@ function drawKeyUI() {
   ctx.fillRect(ux+5,uy+1,1,1); ctx.fillRect(ux+7,uy+1,1,1);
   // Count
   if (S.keyCount > 0) drawDigits(ctx, String(S.keyCount), ux+11, uy-3, 1, '#d4a830');
+}
+
+function drawHearts() {
+  const hx = 6, hy = 5;
+  for (let i = 0; i < S.maxHp; i++) {
+    const x = hx + i * 10;
+    const filled = i < S.hp;
+    // 7x6 pixel heart
+    if (filled) {
+      ctx.fillStyle = '#cc2233';
+      // Top bumps
+      ctx.fillRect(x+1, hy, 2, 1);
+      ctx.fillRect(x+4, hy, 2, 1);
+      // Second row
+      ctx.fillRect(x, hy+1, 7, 1);
+      // Middle
+      ctx.fillRect(x, hy+2, 7, 1);
+      // Taper
+      ctx.fillRect(x+1, hy+3, 5, 1);
+      ctx.fillRect(x+2, hy+4, 3, 1);
+      ctx.fillRect(x+3, hy+5, 1, 1);
+      // Highlight
+      ctx.fillStyle = '#ff5566';
+      ctx.fillRect(x+1, hy+1, 1, 1);
+      ctx.fillRect(x+2, hy, 1, 1);
+    } else {
+      ctx.fillStyle = '#442222';
+      ctx.fillRect(x+1, hy, 2, 1);
+      ctx.fillRect(x+4, hy, 2, 1);
+      ctx.fillRect(x, hy+1, 7, 1);
+      ctx.fillRect(x, hy+2, 7, 1);
+      ctx.fillRect(x+1, hy+3, 5, 1);
+      ctx.fillRect(x+2, hy+4, 3, 1);
+      ctx.fillRect(x+3, hy+5, 1, 1);
+    }
+  }
 }
 
 function drawMoveCounter() {
