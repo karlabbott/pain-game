@@ -2155,7 +2155,7 @@ function checkTrapTrigger(rm, moveX, moveY) {
   if (!rm || S.roomHazard !== 'trap') return false;
   for (const trap of S.roomTraps) {
     if (trap.triggered) continue;
-    if (Math.hypot(S.px - trap.x, S.py - trap.y) < 6) {
+    if (Math.hypot(S.px - trap.x, S.py - trap.y) < 12) {
       triggerTrap(trap, moveX, moveY);
       return true;
     }
@@ -2666,29 +2666,44 @@ function drawFloor(th, roomType = curRoom().type) {
 function drawHazardFloor(rm) {
   if (S.roomHazard === 'ice') {
     ctx.save();
-    ctx.fillStyle = 'rgba(180,210,240,0.08)';
+    ctx.fillStyle = 'rgba(180,210,240,0.15)';
     ctx.fillRect(PLAY_L, PLAY_T, PLAY_R - PLAY_L, PLAY_B - PLAY_T);
     ctx.restore();
     return;
   }
   if (S.roomHazard !== 'trap') return;
   ctx.save();
+  const pulse = 0.5 + Math.sin(S.time * 3) * 0.2;
   for (const trap of S.roomTraps) {
-    const tx = Math.round(trap.x - 6);
-    const ty = Math.round(trap.y - 6);
-    ctx.fillStyle = trap.triggered ? 'rgba(110,50,44,0.4)' : 'rgba(120,62,54,0.24)';
-    ctx.fillRect(tx, ty, 12, 12);
-    ctx.fillStyle = 'rgba(60,28,24,0.5)';
-    ctx.fillRect(tx, ty + 11, 12, 1);
-    ctx.strokeStyle = trap.triggered ? 'rgba(255,180,150,0.4)' : 'rgba(70,32,28,0.55)';
+    const sz = 14;
+    const tx = Math.round(trap.x - sz / 2);
+    const ty = Math.round(trap.y - sz / 2);
+    if (trap.triggered) {
+      // Triggered — dim cracked look
+      ctx.fillStyle = 'rgba(80,30,25,0.5)';
+      ctx.fillRect(tx, ty, sz, sz);
+    } else {
+      // Pulsing red glow around trap
+      ctx.fillStyle = `rgba(160,50,30,${0.12 + pulse * 0.08})`;
+      ctx.fillRect(tx - 2, ty - 2, sz + 4, sz + 4);
+      // Main trap tile — cracked stone
+      ctx.fillStyle = 'rgba(140,55,40,0.55)';
+      ctx.fillRect(tx, ty, sz, sz);
+      // Dark border
+      ctx.strokeStyle = 'rgba(180,70,50,0.7)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(tx + 0.5, ty + 0.5, sz - 1, sz - 1);
+    }
+    // X crack pattern
+    ctx.strokeStyle = trap.triggered ? 'rgba(200,120,100,0.3)' : 'rgba(220,140,100,0.6)';
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(tx + 2, ty + 2); ctx.lineTo(tx + 10, ty + 10);
-    ctx.moveTo(tx + 10, ty + 2); ctx.lineTo(tx + 2, ty + 10);
+    ctx.moveTo(tx + 2, ty + 2); ctx.lineTo(tx + sz - 2, ty + sz - 2);
+    ctx.moveTo(tx + sz - 2, ty + 2); ctx.lineTo(tx + 2, ty + sz - 2);
     ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(tx + 6, ty + 1); ctx.lineTo(tx + 5, ty + 4); ctx.lineTo(tx + 7, ty + 7);
-    ctx.stroke();
+    // Center dot
+    ctx.fillStyle = trap.triggered ? 'rgba(100,40,30,0.4)' : `rgba(255,80,40,${0.3 + pulse * 0.2})`;
+    ctx.fillRect(tx + sz / 2 - 1, ty + sz / 2 - 1, 2, 2);
   }
   ctx.restore();
 }
@@ -3134,13 +3149,13 @@ function drawMoveCounter() {
 function drawHazardIndicator() {
   if (!S.roomHazard || !HAZARD_INFO[S.roomHazard]) return;
   const info = HAZARD_INFO[S.roomHazard];
-  const scale = 1;
+  const scale = 2;
   const tw = measureDigits(info.label, scale);
   ctx.save();
-  ctx.globalAlpha = 0.5;
-  ctx.fillStyle = 'rgba(0,0,0,0.35)';
-  ctx.fillRect(GW - tw - 10, 4, tw + 6, 9);
-  drawDigits(ctx, info.label, GW - tw - 7, 5, scale, info.color);
+  ctx.fillStyle = 'rgba(0,0,0,0.55)';
+  ctx.fillRect(GW - tw - 12, 3, tw + 8, 16);
+  ctx.globalAlpha = 1;
+  drawDigits(ctx, info.label, GW - tw - 8, 5, scale, info.color);
   ctx.restore();
 }
 
