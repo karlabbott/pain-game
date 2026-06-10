@@ -612,6 +612,7 @@ const S = {
   intro: false, introTimer: 0, introPhase: 'outside',
   tableTimer: 0, tableTouching: false,
   walkTarget: null, walkCallback: null,
+  roomHistory: [],
   footstepTimer: 0, particles: [],
   particleDripTimer: 0, particleEmberTimer: 0,
   titleParticles: [], titleDustTimer: 0, titleEmberTimer: 0,
@@ -916,6 +917,7 @@ function startGame() {
   S.room = mapConfig.startRoom || 'room-1';
   S.visited = {};
   S.visited[S.room] = { wall: 'bottom', count: 0 };
+  S.roomHistory = [roomMap[S.room].num];
   S.steps=0;
   S.titleTime = 0;
   S.footstepTimer=0; resetParticles();
@@ -938,6 +940,7 @@ function restartGame() {
   S.fadeA=0; S.trans=false; S.tPhase=null;
   S.steps=0; S.keyCount=0; S.pickedKeys={}; S.openedDoors={};
   S.visited={}; S.visited[S.room]={wall:'bottom', count:0};
+  S.roomHistory=[roomMap[S.room].num];
   S.dead=false; S.deathTimer=0; S.blocked=0;
   S.knockX=0; S.knockY=0; S.flash=0;
   S.won=false; S.winTimer=0;
@@ -2099,6 +2102,7 @@ function updateTrans() {
         S.visited[S.room] = { wall: S.nextWall, count: 0 };
       }
       S.visited[S.room].count++;
+      S.roomHistory.push(roomMap[S.room].num);
       const sp=spawnPos(OPP[S.nextWall]);
       S.px=sp.x; S.py=sp.y; S.dir=sp.dir;
       S.tPhase='in'; updateUI();
@@ -2294,7 +2298,7 @@ function render() {
   drawVignette();
   drawKeyUI();
   drawMoveCounter();
-  drawMinimap();
+  drawBreadcrumbs();
   drawFade();
   drawDeath();
   drawWin();
@@ -2360,83 +2364,46 @@ function minimapPoint(rm, mx, my, mw, mh, pad) {
   };
 }
 
-function drawMinimap() {
+function drawBreadcrumbs() {
   if (S.intro || S.dead || S.won || !S.started) return;
+  if (S.roomHistory.length < 2) return;
 
-  const MX = 2, MY = GH - 86;
-  const MW = 78, MH = 64;
-  const PAD = 4;
+  // Show last 10 rooms as a trail at the bottom-left
+  const trail = S.roomHistory.slice(-10);
+  const scale = 1;
+  const charW = 6; // 5px + 1px gap at scale 1
+  const arrowW = 4 * charW; // " > " = 3 chars but we use arrow symbol
+
+  // Build display string: "1 > 41 > 21 > 17"
+  let parts = [];
+  for (let i = 0; i < trail.length; i++) {
+    parts.push(String(trail[i]));
+  }
+  const display = parts.join(' . ');
+  const tw = display.length * charW - 1;
+
+  const px = 4;
+  const py = GH - 10;
 
   // Dark backing
-  ctx.fillStyle = 'rgba(0,0,0,0.6)';
-  ctx.fillRect(MX, MY, MW, MH);
-  ctx.strokeStyle = 'rgba(200,180,140,0.2)';
-  ctx.strokeRect(MX, MY, MW, MH);
+  ctx.fillStyle = 'rgba(0,0,0,0.5)';
+  ctx.fillRect(px - 2, py - 2, tw + 4, 11);
 
-  // Connection lines
-  ctx.lineWidth = 1;
-  for (const rm of ROOMS) {
-    if (!S.visited[rm.id]) continue;
-    const rp = minimapPoint(rm, MX, MY, MW, MH, PAD);
-    if (!rp) continue;
+  // Draw each part — current room bright, older rooms dimmer
+  let cx = px;
+  for (let i = 0; i < parts.length; i++) {
+    const num = parts[i];
+    const isLast = (i === parts.length - 1);
+    const age = parts.length - 1 - i; // 0 = current, higher = older
+    const alpha = isLast ? 1.0 : Math.max(0.3, 0.8 - age * 0.06);
+    const color = isLast ? '#ffe880' : `rgba(180,170,140,${alpha})`;
 
-    for (const d of rm.doors) {
-      const tgt = roomMap[d.target];
-      if (!tgt || !S.visited[tgt.id] || !isDoorVisible(d)) continue;
-      const tp = minimapPoint(tgt, MX, MY, MW, MH, PAD);
-      if (!tp) continue;
-      ctx.strokeStyle = 'rgba(140,130,100,0.35)';
-      ctx.beginPath();
-      ctx.moveTo(Math.round(rp.x), Math.round(rp.y));
-      ctx.lineTo(Math.round(tp.x), Math.round(tp.y));
-      ctx.stroke();
-    }
-  }
+    drawDigits(ctx, num, cx, py, scale, color);
+    cx += num.length * charW;
 
-  // Collect current room's neighbors for labeling
-  const cur = curRoom();
-  const neighborIds = new Set();
-  if (cur) {
-    for (const d of cur.doors) {
-      if (isDoorVisible(d) && S.visited[d.target]) neighborIds.add(d.target);
-    }
-  }
-
-  // Room dots + labels
-  for (const rm of ROOMS) {
-    if (!S.visited[rm.id]) continue;
-    const p = minimapPoint(rm, MX, MY, MW, MH, PAD);
-    if (!p) continue;
-    const rx = Math.round(p.x), ry = Math.round(p.y);
-    const isCurrent = rm.id === S.room;
-    const isNeighbor = neighborIds.has(rm.id);
-    const isDanger = rm.isDeath || rm.isSoftLock;
-
-    // Dot
-    if (isCurrent) {
-      ctx.fillStyle = `rgba(255,220,100,${0.8 + Math.sin(S.time * 4) * 0.2})`;
-      ctx.fillRect(rx - 2, ry - 2, 4, 4);
-    } else if (isDanger) {
-      ctx.fillStyle = 'rgba(200,50,40,0.65)';
-      ctx.fillRect(rx - 1, ry - 1, 3, 3);
-    } else if (isNeighbor) {
-      ctx.fillStyle = 'rgba(200,190,150,0.55)';
-      ctx.fillRect(rx - 1, ry - 1, 3, 3);
-    } else {
-      ctx.fillStyle = 'rgba(140,130,110,0.4)';
-      ctx.fillRect(rx - 1, ry - 1, 2, 2);
-    }
-
-    // Room number — show on current room and its direct neighbors
-    if (isCurrent || isNeighbor || isDanger) {
-      const ns = String(rm.num);
-      const charW = 6; // 5px char + 1px gap at scale 1
-      const nw = ns.length * charW - 1;
-      const nx = Math.round(rx - nw / 2 + 1);
-      const ny = ry + (isCurrent ? 4 : 3);
-      const numColor = isCurrent ? '#ffe880' :
-                       isDanger ? '#c04030' : '#b8b098';
-      drawDigits(ctx, ns, nx, ny, 1, numColor);
+    if (i < parts.length - 1) {
+      drawDigits(ctx, ' . ', cx, py, scale, `rgba(120,110,80,${alpha * 0.6})`);
+      cx += 3 * charW;
     }
   }
 }
@@ -2691,11 +2658,33 @@ function drawDoors(rm, th) {
     ctx.fillRect(z.x,z.y,z.w,z.h);
 
     // Frame edges
-    ctx.fillStyle = locked ? '#5a2020' : th.doorFrame;
+    const visited = S.visited[d.target];
+    let frameColor;
+    if (locked) {
+      frameColor = '#5a2020';
+    } else if (visited) {
+      frameColor = '#4a3a20'; // warm brown — been there
+    } else {
+      frameColor = '#203848'; // cool blue-gray — unexplored
+    }
+    ctx.fillStyle = frameColor;
     if (d.wall==='top'||d.wall==='bottom') {
       ctx.fillRect(z.x-1,z.y,1,z.h); ctx.fillRect(z.x+z.w,z.y,1,z.h);
     } else {
       ctx.fillRect(z.x,z.y-1,z.w,1); ctx.fillRect(z.x,z.y+z.h,z.w,1);
+    }
+
+    // Subtle glow for unexplored doors
+    if (!locked && !visited) {
+      ctx.save();
+      const gcx = (d.wall==='top'||d.wall==='bottom') ? z.x+z.w/2 : (d.wall==='left' ? z.x : z.x+z.w);
+      const gcy = (d.wall==='left'||d.wall==='right') ? z.y+z.h/2 : (d.wall==='top' ? z.y : z.y+z.h);
+      const gr = ctx.createRadialGradient(gcx, gcy, 0, gcx, gcy, 14);
+      gr.addColorStop(0, `rgba(80,160,220,${0.08 + Math.sin(S.time * 2) * 0.03})`);
+      gr.addColorStop(1, 'transparent');
+      ctx.fillStyle = gr;
+      ctx.fillRect(gcx - 14, gcy - 14, 28, 28);
+      ctx.restore();
     }
 
     // Lock bars on locked doors
