@@ -41,6 +41,14 @@
   #step-display {
     display: none;
   }
+  #breadcrumbs {
+    position: fixed; bottom: 8px; left: 50%; transform: translateX(-50%);
+    font-family: monospace; font-size: 11px; letter-spacing: 1px;
+    color: rgba(200,180,140,0.7); z-index: 5;
+    pointer-events: none; white-space: nowrap;
+  }
+  #breadcrumbs .bc-current { color: #ffe880; }
+  #breadcrumbs .bc-sep { color: rgba(120,110,80,0.5); }
   @keyframes pulse { 0%,100% { opacity: 0.4; } 50% { opacity: 0.7; } }
   #map-selector {
     margin-top: 30px; display: flex; flex-direction: column; align-items: center; gap: 8px;
@@ -87,6 +95,7 @@
 <button id="quit-btn">✕</button>
 <canvas id="game"></canvas>
 <div id="room-name"></div>
+<div id="breadcrumbs"></div>
 <div id="step-display">STEPS: 0</div>
 
 <script>
@@ -974,6 +983,7 @@ function returnToTitle() {
   document.getElementById('quit-btn').style.display = 'none';
   document.getElementById('room-name').textContent = '';
   document.getElementById('step-display').textContent = '';
+  document.getElementById('breadcrumbs').textContent = '';
 }
 
 // Pause/resume audio on visibility change (phone lock, tab switch)
@@ -2105,6 +2115,7 @@ function updateTrans() {
       }
       S.visited[S.room].count++;
       S.roomHistory.push(roomMap[S.room].num);
+      updateBreadcrumbs();
       const sp=spawnPos(OPP[S.nextWall]);
       S.px=sp.x; S.py=sp.y; S.dir=sp.dir;
       S.tPhase='in'; updateUI();
@@ -2300,7 +2311,6 @@ function render() {
   drawVignette();
   drawKeyUI();
   drawMoveCounter();
-  drawBreadcrumbs();
   drawFade();
   drawDeath();
   drawWin();
@@ -2366,50 +2376,23 @@ function minimapPoint(rm, mx, my, mw, mh, pad) {
   };
 }
 
-function drawBreadcrumbs() {
-  if (S.intro || S.dead || S.won || !S.started) return;
-  if (S.roomHistory.length < 2) return;
-
-  const scale = 1;
-  const charW = 6; // 5px + 1px gap at scale 1
-  const px = 4;
-  const py = GH - 10;
-
-  // Reserve space for moves counter if active
-  const maxW = mapConfig.moveLimit ? GW - 80 : GW - 10;
-
-  // Trim trail from the front until it fits
-  let trail = S.roomHistory.slice(-10);
-  let parts, tw;
-  do {
-    parts = trail.map(String);
-    const display = parts.join(' . ');
-    tw = display.length * charW - 1;
-    if (tw <= maxW || trail.length <= 2) break;
-    trail = trail.slice(1);
-  } while (true);
-
-  // Dark backing
-  ctx.fillStyle = 'rgba(0,0,0,0.5)';
-  ctx.fillRect(px - 2, py - 2, tw + 4, 11);
-
-  // Draw each part — current room bright, older rooms dimmer
-  let cx = px;
-  for (let i = 0; i < parts.length; i++) {
-    const num = parts[i];
-    const isLast = (i === parts.length - 1);
-    const age = parts.length - 1 - i;
-    const alpha = isLast ? 1.0 : Math.max(0.3, 0.8 - age * 0.06);
-    const color = isLast ? '#ffe880' : `rgba(180,170,140,${alpha})`;
-
-    drawDigits(ctx, num, cx, py, scale, color);
-    cx += num.length * charW;
-
-    if (i < parts.length - 1) {
-      drawDigits(ctx, ' . ', cx, py, scale, `rgba(120,110,80,${alpha * 0.6})`);
-      cx += 3 * charW;
+function updateBreadcrumbs() {
+  const el = document.getElementById('breadcrumbs');
+  if (S.intro || S.dead || S.won || !S.started || S.roomHistory.length < 2) {
+    el.textContent = '';
+    return;
+  }
+  const trail = S.roomHistory.slice(-12);
+  let html = '';
+  for (let i = 0; i < trail.length; i++) {
+    const isLast = (i === trail.length - 1);
+    if (isLast) {
+      html += '<span class="bc-current">' + trail[i] + '</span>';
+    } else {
+      html += trail[i] + '<span class="bc-sep"> · </span>';
     }
   }
+  el.innerHTML = html;
 }
 
 function drawDoorScuffs(z, wall, seed) {
