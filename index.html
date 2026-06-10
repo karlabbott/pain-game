@@ -2302,13 +2302,15 @@ function drawFloor(th, roomType = curRoom().type) {
 
 function drawFootprintMark(x, y, vertical) {
   if (vertical) {
-    ctx.fillRect(x, y, 1, 2);
-    ctx.fillRect(x + 1, y, 1, 1);
-    ctx.fillRect(x - 1, y + 1, 1, 1);
+    // Boot shape ~4x3px, pointing up/down
+    ctx.fillRect(x, y, 2, 3);
+    ctx.fillRect(x + 2, y + 1, 1, 2);
+    ctx.fillRect(x - 1, y, 1, 1);
   } else {
-    ctx.fillRect(x, y, 2, 1);
+    // Boot shape ~3x4px, pointing left/right
+    ctx.fillRect(x, y, 3, 2);
+    ctx.fillRect(x + 1, y + 2, 2, 1);
     ctx.fillRect(x, y - 1, 1, 1);
-    ctx.fillRect(x + 1, y + 1, 1, 1);
   }
 }
 
@@ -2328,7 +2330,7 @@ function drawFootprints(rm) {
   const side = {x: -forward.y, y: forward.x};
   const vertical = forward.y !== 0;
 
-  ctx.fillStyle = 'rgba(0,0,0,0.12)';
+  ctx.fillStyle = 'rgba(180,170,140,0.22)';
   for (let i = 0; i < stepCount; i++) {
     const stride = 9 + i * 5 + Math.floor(noise2d(rm.num, i, 73) * 3);
     const spread = i % 2 === 0 ? -2 : 2;
@@ -2355,15 +2357,17 @@ function minimapPoint(rm, mx, my, mw, mh, pad) {
 function drawMinimap() {
   if (S.intro || S.dead || S.won || !S.started) return;
 
-  const MX = 4, MY = GH - 72;
-  const MW = 64, MH = 50;
-  const PAD = 3;
+  const MX = 2, MY = GH - 86;
+  const MW = 78, MH = 64;
+  const PAD = 4;
 
-  ctx.fillStyle = 'rgba(0,0,0,0.55)';
+  // Dark backing
+  ctx.fillStyle = 'rgba(0,0,0,0.6)';
   ctx.fillRect(MX, MY, MW, MH);
-  ctx.strokeStyle = 'rgba(200,180,140,0.15)';
+  ctx.strokeStyle = 'rgba(200,180,140,0.2)';
   ctx.strokeRect(MX, MY, MW, MH);
 
+  // Connection lines
   ctx.lineWidth = 1;
   for (const rm of ROOMS) {
     if (!S.visited[rm.id]) continue;
@@ -2375,7 +2379,7 @@ function drawMinimap() {
       if (!tgt || !S.visited[tgt.id] || !isDoorVisible(d)) continue;
       const tp = minimapPoint(tgt, MX, MY, MW, MH, PAD);
       if (!tp) continue;
-      ctx.strokeStyle = 'rgba(120,110,90,0.3)';
+      ctx.strokeStyle = 'rgba(140,130,100,0.35)';
       ctx.beginPath();
       ctx.moveTo(Math.round(rp.x), Math.round(rp.y));
       ctx.lineTo(Math.round(tp.x), Math.round(tp.y));
@@ -2383,23 +2387,53 @@ function drawMinimap() {
     }
   }
 
+  // Collect current room's neighbors for labeling
+  const cur = curRoom();
+  const neighborIds = new Set();
+  if (cur) {
+    for (const d of cur.doors) {
+      if (isDoorVisible(d) && S.visited[d.target]) neighborIds.add(d.target);
+    }
+  }
+
+  // Room dots + labels
   for (const rm of ROOMS) {
     if (!S.visited[rm.id]) continue;
     const p = minimapPoint(rm, MX, MY, MW, MH, PAD);
     if (!p) continue;
     const rx = Math.round(p.x), ry = Math.round(p.y);
+    const isCurrent = rm.id === S.room;
+    const isNeighbor = neighborIds.has(rm.id);
+    const isDanger = rm.isDeath || rm.isSoftLock;
 
-    if (rm.id === S.room) {
-      ctx.fillStyle = `rgba(255,220,100,${0.7 + Math.sin(S.time * 4) * 0.2})`;
+    // Dot
+    if (isCurrent) {
+      ctx.fillStyle = `rgba(255,220,100,${0.8 + Math.sin(S.time * 4) * 0.2})`;
+      ctx.fillRect(rx - 2, ry - 2, 4, 4);
+    } else if (isDanger) {
+      ctx.fillStyle = 'rgba(200,50,40,0.65)';
       ctx.fillRect(rx - 1, ry - 1, 3, 3);
-    } else if (rm.isDeath || rm.isSoftLock) {
-      ctx.fillStyle = 'rgba(180,50,40,0.5)';
+    } else if (isNeighbor) {
+      ctx.fillStyle = 'rgba(200,190,150,0.55)';
       ctx.fillRect(rx - 1, ry - 1, 3, 3);
     } else {
-      ctx.fillStyle = 'rgba(160,150,130,0.4)';
-      ctx.fillRect(rx, ry, 2, 2);
+      ctx.fillStyle = 'rgba(140,130,110,0.4)';
+      ctx.fillRect(rx - 1, ry - 1, 2, 2);
+    }
+
+    // Room number — show on current room and its direct neighbors
+    if (isCurrent || isNeighbor || isDanger) {
+      const ns = String(rm.num);
+      const charW = 6; // 5px char + 1px gap at scale 1
+      const nw = ns.length * charW - 1;
+      const nx = Math.round(rx - nw / 2 + 1);
+      const ny = ry + (isCurrent ? 4 : 3);
+      const numColor = isCurrent ? '#ffe880' :
+                       isDanger ? '#c04030' : '#b8b098';
+      drawDigits(ctx, ns, nx, ny, 1, numColor);
     }
   }
+}
 }
 
 function drawDoorScuffs(z, wall, seed) {
