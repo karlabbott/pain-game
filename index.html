@@ -18,7 +18,7 @@
   }
   canvas { image-rendering: pixelated; image-rendering: crisp-edges; display: block; }
   #title-screen {
-    position: fixed; inset: 0; background: #000; z-index: 10;
+    position: fixed; inset: 0; background: linear-gradient(rgba(0,0,0,0.25), rgba(0,0,0,0.62)); z-index: 10;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     cursor: pointer; transition: opacity 1s ease;
   }
@@ -188,6 +188,28 @@ function drawDigits(ctx, numStr, x, y, scale, color) {
         }
       }
     }
+
+    function measureDigits(text, scale) {
+      if (!text.length) return 0;
+      return text.length * (5 * scale + scale) - scale;
+    }
+
+    function drawCenteredDigits(text, y, scale, color, alpha = 1) {
+      const x = Math.floor((GW - measureDigits(text, scale)) / 2);
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      drawDigits(ctx, text, x, y, scale, color);
+      ctx.restore();
+    }
+
+    function drawRotatedDigits(text, x, y, scale, color, angle, alpha = 1) {
+      ctx.save();
+      ctx.translate(Math.floor(x), Math.floor(y));
+      ctx.rotate(angle);
+      ctx.globalAlpha = alpha;
+      drawDigits(ctx, text.toUpperCase(), 0, 0, scale, color);
+      ctx.restore();
+    }
   }
 }
 
@@ -332,30 +354,25 @@ const THEMES = {
       // ── Graffiti scrawled on walls — scratched, desperate, layered ──
       ctx.save();
       const scrawl = (text, x, y, size, angle, alpha, color) => {
-        ctx.save();
-        ctx.translate(x, y); ctx.rotate(angle);
-        ctx.font = 'bold ' + size + 'px monospace';
-        ctx.fillStyle = color;
-        ctx.globalAlpha = alpha;
-        ctx.fillText(text, 0, 0);
-        ctx.restore();
+        const scale = size >= 8 ? 2 : 1;
+        drawRotatedDigits(text, x, y, scale, color, angle, alpha);
       };
 
       // Left wall — panicked, layered
       scrawl('HELP', PLAY_L+6, PLAY_T+26, 9, -0.08, 0.55, '#b0a880');
       scrawl('HELP ME', PLAY_L+4, PLAY_T+40, 6, 0.1, 0.35, '#a09870');
-      scrawl('no way out', PLAY_L+4, PLAY_T+54, 6, 0.05, 0.4, '#908868');
-      scrawl('no way out', PLAY_L+5, PLAY_T+55, 6, 0.05, 0.2, '#706848'); // shadow/retraced
+      scrawl('NO WAY OUT', PLAY_L+4, PLAY_T+54, 6, 0.05, 0.4, '#908868');
+      scrawl('NO WAY OUT', PLAY_L+5, PLAY_T+55, 6, 0.05, 0.2, '#706848'); // shadow/retraced
       scrawl('III IIII II', PLAY_L+8, PLAY_T+72, 5, -0.03, 0.35, '#90a088');
       scrawl('NOT REAL', PLAY_L+6, PLAY_T+100, 7, 0.12, 0.4, '#b09070');
-      scrawl('it watches', PLAY_L+10, PLAY_T+116, 5, -0.06, 0.3, '#808870');
+      scrawl('IT WATCHES', PLAY_L+10, PLAY_T+116, 5, -0.06, 0.3, '#808870');
 
       // Right wall — angrier, bigger
       scrawl('TURN BACK', PLAY_R-58, PLAY_T+22, 7, 0.06, 0.5, '#c0a880');
       scrawl('WHY', PLAY_R-30, PLAY_T+42, 11, -0.12, 0.6, '#d0b080');
       scrawl('WHY WHY WHY', PLAY_R-62, PLAY_T+58, 5, 0.03, 0.35, '#a09060');
-      scrawl('day 47', PLAY_R-38, PLAY_T+74, 5, 0.02, 0.35, '#908868');
-      scrawl('day 48?', PLAY_R-38, PLAY_T+84, 4, -0.04, 0.25, '#807858');
+      scrawl('DAY 47', PLAY_R-38, PLAY_T+74, 5, 0.02, 0.35, '#908868');
+      scrawl('DAY 48', PLAY_R-38, PLAY_T+84, 4, -0.04, 0.25, '#807858');
       scrawl('LIAR', PLAY_R-34, PLAY_T+98, 8, -0.08, 0.5, '#c09070');
       scrawl('DONT TRUST 6', PLAY_R-62, PLAY_T+114, 5, 0.04, 0.4, '#a0a078');
 
@@ -365,7 +382,7 @@ const THEMES = {
 
       // Floor scrawls
       scrawl('FIND THE KEY', GW/2-30, PLAY_B-40, 5, 0.02, 0.25, '#707860');
-      scrawl('remember', GW/2+20, PLAY_B-55, 4, -0.08, 0.2, '#606850');
+      scrawl('REMEMBER', GW/2+20, PLAY_B-55, 4, -0.08, 0.2, '#606850');
 
       // Tally marks on left wall (groups of 5) — brighter
       ctx.strokeStyle = 'rgba(180,180,160,0.35)'; ctx.lineWidth = 1;
@@ -582,7 +599,7 @@ const S = {
   nextRoom: null, nextWall: null,
   steps: 0, started: false, keys: {},
   keyCount: 0, pickedKeys: {}, openedDoors: {},
-  time: 0, blocked: 0,
+  time: 0, titleTime: 0, blocked: 0,
   dead: false, deathTimer: 0,
   knockX: 0, knockY: 0, flash: 0,
   won: false, winTimer: 0,
@@ -591,6 +608,8 @@ const S = {
   walkTarget: null, walkCallback: null,
   footstepTimer: 0, particles: [],
   particleDripTimer: 0, particleEmberTimer: 0,
+  titleParticles: [], titleDustTimer: 0, titleEmberTimer: 0,
+  deathDebris: [], winParticles: [], winParticleTimer: 0,
 };
 
 // ═══════════════════════════════════════════════
@@ -889,6 +908,7 @@ function startGame() {
   S.intro=true; S.introTimer=0; S.introPhase='outside';
   S.room = mapConfig.startRoom || 'room-1';
   S.steps=0;
+  S.titleTime = 0;
   S.footstepTimer=0; resetParticles();
   updateStepDisplay();
   document.getElementById('title-screen').classList.add('hidden');
@@ -913,7 +933,7 @@ function restartGame() {
   S.won=false; S.winTimer=0;
   S.tableTimer=0; S.tableTouching=false;
   S.walkTarget=null; S.walkCallback=null;
-  S.footstepTimer=0; resetParticles();
+  S.footstepTimer=0; S.deathDebris=[]; S.winParticles=[]; resetParticles();
   recomputeLockedPairs();
   updateStepDisplay();
   updateUI();
@@ -927,6 +947,10 @@ function returnToTitle() {
   S.intro = false;
   S.walkTarget = null; S.walkCallback = null;
   S.footstepTimer = 0; resetParticles();
+  S.titleTime = 0;
+  S.deathDebris = [];
+  S.winParticles = [];
+  resetTitleParticles();
   if (melodyTimeout) clearTimeout(melodyTimeout);
   fadeOutDrone();
   if (audioCtx) { try { audioCtx.close(); } catch(e){} audioCtx = null; }
@@ -1518,10 +1542,23 @@ function getTorchPositions(roomType = curRoom().type) {
   ];
 }
 
+function getTitleTorchPositions() {
+  return [
+    {x: Math.floor(GW * 0.25), y: TILE + 6},
+    {x: Math.floor(GW * 0.75), y: TILE + 6},
+  ];
+}
+
 function resetParticles() {
   S.particles = [];
   S.particleDripTimer = 24 + Math.random() * 40;
   S.particleEmberTimer = 8 + Math.random() * 8;
+}
+
+function resetTitleParticles() {
+  S.titleParticles = [];
+  S.titleDustTimer = 0;
+  S.titleEmberTimer = 0;
 }
 
 function spawnParticle(p) {
@@ -1590,6 +1627,156 @@ function spawnSplashParticles(x) {
       color: '#9cb6be',
     });
   }
+}
+
+function spawnTitleDustParticle() {
+  const life = 240 + Math.random() * 220;
+  const colors = ['#e8dcc0', '#d6c6a0', '#bfae88'];
+  S.titleParticles.push({
+    kind: 'dust',
+    x: PLAY_L + 4 + Math.random() * (PLAY_R - PLAY_L - 8),
+    y: PLAY_T + 8 + Math.random() * (PLAY_B - PLAY_T - 18),
+    vx: (Math.random() - 0.5) * 0.06,
+    vy: -0.01 - Math.random() * 0.025,
+    life, maxLife: life,
+    size: Math.random() > 0.82 ? 2 : 1,
+    alpha: 0.12 + Math.random() * 0.1,
+    color: colors[Math.floor(Math.random() * colors.length)],
+  });
+}
+
+function spawnTitleEmberParticle(x, y) {
+  const life = 26 + Math.random() * 24;
+  const colors = ['#ffb347', '#ff8c33', '#ffd36b', '#ffe08c'];
+  S.titleParticles.push({
+    kind: 'ember',
+    x: x + (Math.random() - 0.5) * 7,
+    y: y - 1,
+    vx: (Math.random() - 0.5) * 0.16,
+    vy: -0.18 - Math.random() * 0.12,
+    life, maxLife: life,
+    size: Math.random() > 0.5 ? 2 : 1,
+    alpha: 0.55 + Math.random() * 0.2,
+    color: colors[Math.floor(Math.random() * colors.length)],
+  });
+}
+
+function updateTitleParticles() {
+  const next = [];
+  for (const p of S.titleParticles) {
+    p.life -= 1;
+    p.x += p.vx;
+    p.y += p.vy;
+    if (p.kind === 'dust') {
+      p.vx = Math.max(-0.07, Math.min(0.07, p.vx + Math.sin(S.titleTime * 1.2 + p.y * 0.05) * 0.0012));
+    } else if (p.kind === 'ember') {
+      p.vx *= 0.99;
+      p.vy -= 0.0015;
+    }
+    if (p.life > 0 && p.x > PLAY_L - 8 && p.x < PLAY_R + 8 && p.y > PLAY_T - 20 && p.y < PLAY_B + 8) next.push(p);
+  }
+  S.titleParticles = next;
+
+  let dustCount = S.titleParticles.filter(p => p.kind === 'dust').length;
+  while (dustCount < 14) {
+    spawnTitleDustParticle();
+    dustCount++;
+  }
+
+  S.titleEmberTimer -= 1;
+  if (S.titleEmberTimer <= 0) {
+    getTitleTorchPositions().forEach(t => {
+      spawnTitleEmberParticle(t.x, t.y);
+      if (Math.random() > 0.45) spawnTitleEmberParticle(t.x, t.y);
+    });
+    S.titleEmberTimer = 3 + Math.random() * 5;
+  }
+}
+
+function spawnDeathDebrisBurst() {
+  S.deathDebris = [];
+  for (let i=0; i<34; i++) {
+    const size = 1 + Math.floor(Math.random() * 3);
+    S.deathDebris.push({
+      x: Math.random() * GW,
+      y: -Math.random() * 60,
+      vx: (Math.random() - 0.5) * 0.7,
+      vy: 0.7 + Math.random() * 1.4,
+      rot: Math.random() * Math.PI * 2,
+      spin: (Math.random() - 0.5) * 0.18,
+      size,
+      life: 70 + Math.random() * 35,
+      maxLife: 105,
+      color: ['#5c5146', '#77695c', '#918070'][Math.floor(Math.random() * 3)],
+    });
+  }
+}
+
+function updateDeathDebris() {
+  const next = [];
+  for (const p of S.deathDebris) {
+    p.life -= 1;
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vy += 0.035;
+    p.rot += p.spin;
+    if (p.life > 0 && p.y < GH + 12) next.push(p);
+  }
+  S.deathDebris = next;
+}
+
+function spawnWinParticle() {
+  const life = 80 + Math.random() * 40;
+  S.winParticles.push({
+    x: 6 + Math.random() * (GW - 12),
+    y: GH + Math.random() * 12,
+    vx: (Math.random() - 0.5) * 0.22,
+    vy: -0.35 - Math.random() * 0.35,
+    life, maxLife: life,
+    size: Math.random() > 0.6 ? 2 : 1,
+    alpha: 0.35 + Math.random() * 0.35,
+    color: ['#fff0a0', '#ffd050', '#f6c33f', '#fff6cc'][Math.floor(Math.random() * 4)],
+  });
+}
+
+function updateWinParticles() {
+  const next = [];
+  for (const p of S.winParticles) {
+    p.life -= 1;
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vx *= 0.995;
+    p.vy -= 0.001;
+    if (p.life > 0 && p.y > -12) next.push(p);
+  }
+  S.winParticles = next;
+
+  S.winParticleTimer -= 1;
+  if (S.winParticleTimer <= 0) {
+    spawnWinParticle();
+    if (Math.random() > 0.55) spawnWinParticle();
+    S.winParticleTimer = 3 + Math.random() * 4;
+  }
+}
+
+function triggerDeathSequence() {
+  S.dead = true;
+  S.deathTimer = 0;
+  spawnDeathDebrisBurst();
+  sfxDeath();
+  if (melodyTimeout) clearTimeout(melodyTimeout);
+  fadeOutDrone();
+}
+
+function triggerWinSequence() {
+  S.won = true;
+  S.winTimer = 0;
+  S.winParticles = [];
+  S.winParticleTimer = 0;
+  for (let i=0; i<20; i++) spawnWinParticle();
+  sfxWin();
+  if (melodyTimeout) clearTimeout(melodyTimeout);
+  fadeOutDrone();
 }
 
 function updateParticles() {
@@ -1679,12 +1866,24 @@ function inDoorLane(wall, px, py, room) {
 //  UPDATE
 // ═══════════════════════════════════════════════
 function update() {
-  if (!S.started) return;
-  if (S.dead) { S.deathTimer += 1/60; return; }
-  if (S.won) { S.winTimer += 1/60; return; }
+  S.time += 1/60;
+  if (!S.started) {
+    S.titleTime += 1/60;
+    updateTitleParticles();
+    return;
+  }
+  if (S.dead) {
+    S.deathTimer += 1/60;
+    updateDeathDebris();
+    return;
+  }
+  if (S.won) {
+    S.winTimer += 1/60;
+    updateWinParticles();
+    return;
+  }
   if (S.intro) { updateIntro(); return; }
   if (S.trans) { updateTrans(); return; }
-  S.time += 1/60;
   if (S.blocked > 0) S.blocked -= 0.05;
   if (S.flash > 0) S.flash -= 0.06;
   updateParticles();
@@ -1904,17 +2103,11 @@ function updateTrans() {
       S.fadeA=0; S.trans=false;
       // Trigger death after fade-in completes
       if ((curRoom().isDeath || curRoom().isSoftLock) && !S.dead) {
-        S.dead=true; S.deathTimer=0;
-        sfxDeath();
-        if (melodyTimeout) clearTimeout(melodyTimeout);
-        fadeOutDrone();
+        triggerDeathSequence();
       }
       // Trigger win after fade-in completes
       if (curRoom().isWin && !S.won) {
-        S.won=true; S.winTimer=0;
-        sfxWin();
-        if (melodyTimeout) clearTimeout(melodyTimeout);
-        fadeOutDrone();
+        triggerWinSequence();
       }
     }
   }
@@ -1990,9 +2183,7 @@ function renderIntro() {
     ctx.fillStyle='#3a2818';
     ctx.fillRect(archX-3, PLAY_T+1, DOOR_PX+6, 3);
     // Stone text above
-    ctx.fillStyle='rgba(80,60,40,0.6)';
-    ctx.font='bold 6px monospace'; ctx.textAlign='center';
-    ctx.fillText('PAIN', GW/2, PLAY_T-2);
+    drawCenteredDigits('PAIN', PLAY_T - 7, 1, '#6a5640', 0.7);
 
     // Shadow figure (during walk and shove phases)
     if (S.introPhase==='walk' || S.introPhase==='shove') {
@@ -2053,9 +2244,7 @@ function renderIntro() {
     // "CLANG" — door slamming text
     if (t > 0.2 && t < 1.5) {
       const cA = Math.min((t-0.2)*3, 1) * Math.max(0, 1-(t-0.2)/1.3);
-      ctx.fillStyle=`rgba(120,100,80,${cA})`;
-      ctx.font='bold 12px monospace'; ctx.textAlign='center';
-      ctx.fillText('CLANG', GW/2, GH/2);
+      drawCenteredDigits('CLANG', GH/2 - 7, 2, '#786450', cA);
     }
   }
 }
@@ -2064,11 +2253,15 @@ function renderIntro() {
 //  RENDER
 // ═══════════════════════════════════════════════
 function render() {
-  if (!S.started) { ctx.fillStyle='#000'; ctx.fillRect(0,0,GW,GH); return; }
+  if (!S.started) { renderTitleBackground(); return; }
   if (S.intro) { renderIntro(); return; }
   ctx.imageSmoothingEnabled = false;
   const rm=curRoom(), th=curTheme();
 
+  ctx.save();
+  if (S.dead && S.deathTimer < 0.5) {
+    ctx.translate(Math.round((Math.random() - 0.5) * 6), Math.round((Math.random() - 0.5) * 6));
+  }
   drawFloor(th);
   drawFloorNum(rm, th);
   drawKeys(rm);
@@ -2088,10 +2281,11 @@ function render() {
   drawFade();
   drawDeath();
   drawWin();
+  ctx.restore();
 }
 
-function drawFloor(th) {
-  const tex = getThemeTextures(curRoom().type, th);
+function drawFloor(th, roomType = curRoom().type) {
+  const tex = getThemeTextures(roomType, th);
   ctx.drawImage(tex.floor, PLAY_L, PLAY_T);
 }
 
@@ -2220,16 +2414,15 @@ function drawWalls(rm, th) {
   }
 }
 
-function drawTorches() {
-  const torches = getTorchPositions();
+function drawTorches(roomType = curRoom().type, time = S.time, torches = getTorchPositions(roomType)) {
   if (!torches.length) return;
 
   torches.forEach((t, i) => {
-    const pulse = 0.85 + Math.sin(S.time * 9 + i * 1.7) * 0.12 + Math.sin(S.time * 17 + i) * 0.08;
+    const pulse = 0.85 + Math.sin(time * 9 + i * 1.7) * 0.12 + Math.sin(time * 17 + i) * 0.08;
     const flameH = 5 + pulse * 2;
 
     // Large room-filling glow
-    const bigR = 80 + Math.sin(S.time * 5 + i) * 6;
+    const bigR = 80 + Math.sin(time * 5 + i) * 6;
     const bg = ctx.createRadialGradient(t.x, t.y + 10, 0, t.x, t.y + 10, bigR);
     bg.addColorStop(0, `rgba(255,180,80,${0.10 + pulse * 0.04})`);
     bg.addColorStop(0.3, `rgba(255,140,50,${0.06 + pulse * 0.02})`);
@@ -2239,7 +2432,7 @@ function drawTorches() {
     ctx.fillRect(t.x - bigR, t.y - bigR, bigR * 2, bigR * 2);
 
     // Bright inner glow
-    const glowR = 20 + Math.sin(S.time * 7 + i) * 3;
+    const glowR = 20 + Math.sin(time * 7 + i) * 3;
     const g = ctx.createRadialGradient(t.x, t.y + 1, 0, t.x, t.y + 1, glowR);
     g.addColorStop(0, `rgba(255,210,120,${0.25 + pulse * 0.08})`);
     g.addColorStop(0.4, `rgba(255,150,60,${0.12 + pulse * 0.04})`);
@@ -2256,7 +2449,7 @@ function drawTorches() {
 
     // Flame
     const flameColors = ['#ff6a24', '#ff9a2e', '#ffd060'];
-    const phase = Math.floor(S.time * 14 + i * 2) % flameColors.length;
+    const phase = Math.floor(time * 14 + i * 2) % flameColors.length;
     ctx.fillStyle = flameColors[phase];
     ctx.fillRect(t.x - 2, Math.floor(t.y - flameH + 4), 5, Math.ceil(flameH));
     ctx.fillStyle = '#ffd86a';
@@ -2264,6 +2457,35 @@ function drawTorches() {
     ctx.fillStyle = '#ff4a1e';
     ctx.fillRect(t.x, Math.floor(t.y - flameH + 3), 1, 2);
   });
+}
+
+function renderTitleBackground() {
+  ctx.imageSmoothingEnabled = false;
+  const th = THEMES['stone-hall'];
+  const fakeRoom = {type:'stone-hall', doors:[]};
+
+  drawFloor(th, 'stone-hall');
+  drawDecor(th);
+  ctx.fillStyle = 'rgba(0,0,0,0.18)';
+  ctx.fillRect(GW/2 - 24, PLAY_T + 18, 48, PLAY_B - PLAY_T - 36);
+  ctx.fillStyle = '#18120e';
+  ctx.fillRect(GW/2 - 18, PLAY_T + 20, 36, PLAY_B - PLAY_T - 40);
+  drawWalls(fakeRoom, th);
+  drawAmbient(th);
+  drawTitleParticles();
+  drawTorches('stone-hall', S.titleTime, getTitleTorchPositions());
+
+  const fog = ctx.createRadialGradient(GW/2, GH*0.55, 10, GW/2, GH*0.55, GW*0.55);
+  fog.addColorStop(0, 'rgba(30,22,18,0.00)');
+  fog.addColorStop(1, 'rgba(0,0,0,0.40)');
+  ctx.fillStyle = fog;
+  ctx.fillRect(0, 0, GW, GH);
+
+  const vig = ctx.createRadialGradient(GW/2, GH/2, GW*0.18, GW/2, GH/2, GW*0.78);
+  vig.addColorStop(0, 'rgba(0,0,0,0)');
+  vig.addColorStop(1, 'rgba(0,0,0,0.72)');
+  ctx.fillStyle = vig;
+  ctx.fillRect(0, 0, GW, GH);
 }
 
 function drawWallText(rm) {
@@ -2471,10 +2693,10 @@ function drawChar() {
   }
 }
 
-function drawParticles() {
-  if (!S.particles.length) return;
+function drawParticleList(list) {
+  if (!list.length) return;
   ctx.save();
-  for (const p of S.particles) {
+  for (const p of list) {
     const alpha = Math.max(0, (p.life / p.maxLife) * p.alpha);
     if (alpha <= 0) continue;
     ctx.globalAlpha = alpha;
@@ -2482,6 +2704,14 @@ function drawParticles() {
     ctx.fillRect(Math.round(p.x), Math.round(p.y), p.size, p.size);
   }
   ctx.restore();
+}
+
+function drawParticles() {
+  drawParticleList(S.particles);
+}
+
+function drawTitleParticles() {
+  drawParticleList(S.titleParticles);
 }
 
 function drawAmbient(th) {
@@ -2500,12 +2730,43 @@ function drawVignette() {
 }
 
 function drawFade() {
-  if (S.fadeA>0) { ctx.fillStyle=`rgba(0,0,0,${S.fadeA})`; ctx.fillRect(0,0,GW,GH); }
+  if (S.fadeA <= 0) return;
+  const maxR = Math.hypot(GW, GH);
+  const r = Math.max(0, maxR * (1 - S.fadeA));
+  const cx = Math.floor(S.px);
+  const cy = Math.floor(S.py);
+  ctx.save();
+  ctx.fillStyle = '#000';
+  ctx.beginPath();
+  ctx.rect(0, 0, GW, GH);
+  ctx.arc(cx, cy, r, 0, Math.PI * 2, true);
+  ctx.fill();
+  ctx.restore();
 }
 
 function drawDeath() {
   if (!S.dead) return;
   const t = S.deathTimer;
+
+  if (t < 1/60) {
+    ctx.fillStyle = 'rgba(255,255,255,0.85)';
+    ctx.fillRect(0,0,GW,GH);
+  }
+
+  ctx.save();
+  for (const p of S.deathDebris) {
+    const alpha = Math.max(0, Math.min(1, p.life / p.maxLife));
+    ctx.save();
+    ctx.globalAlpha = alpha * 0.85;
+    ctx.translate(Math.round(p.x), Math.round(p.y));
+    ctx.rotate(p.rot);
+    ctx.fillStyle = p.color;
+    ctx.fillRect(-p.size, -p.size, p.size * 2, p.size * 2);
+    ctx.fillStyle = 'rgba(20,12,10,0.4)';
+    ctx.fillRect(-p.size, p.size - 1, p.size * 2, 1);
+    ctx.restore();
+  }
+  ctx.restore();
 
   // Red vignette fading in
   const a = Math.min(t * 0.8, 0.7);
@@ -2518,18 +2779,12 @@ function drawDeath() {
   // "GAME OVER" text after 1.5 seconds
   if (t > 1.5) {
     const textA = Math.min((t - 1.5) * 1.5, 1);
-    // Draw large pixel text "GAME OVER" using the digit font idea but as rectangles
-    ctx.fillStyle = `rgba(180,30,30,${textA})`;
-    ctx.font = '16px monospace';
-    ctx.textAlign = 'center';
-    ctx.fillText('GAME OVER', GW/2, GH/2 - 10);
+    drawCenteredDigits('GAME OVER', GH/2 - 24, 3, '#b41e1e', textA);
 
     // "Press R to restart" after 3 seconds
     if (t > 3) {
       const rA = Math.min((t - 3), 1) * (0.4 + Math.sin(t*3)*0.15);
-      ctx.fillStyle = `rgba(160,140,120,${rA})`;
-      ctx.font = '8px monospace';
-      ctx.fillText(isMobile ? 'TAP TO RESTART' : 'PRESS R TO RESTART', GW/2, GH/2 + 12);
+      drawCenteredDigits(isMobile ? 'TAP TO RESTART' : 'PRESS R TO RESTART', GH/2 + 12, 1, '#a08c78', rA);
     }
   }
 }
@@ -2537,6 +2792,44 @@ function drawDeath() {
 function drawWin() {
   if (!S.won) return;
   const t = S.winTimer;
+
+  if (t < 2) {
+    const expand = Math.min(t / 2, 1);
+    ctx.save();
+    ctx.globalAlpha = 0.08 * (1 - expand * 0.2);
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(GW/2, GH/2, 8 + Math.hypot(GW, GH) * expand, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  ctx.save();
+  ctx.translate(GW/2, GH/2);
+  for (let i=0; i<8; i++) {
+    const ang = t * 0.35 + i * Math.PI / 4;
+    ctx.save();
+    ctx.rotate(ang);
+    ctx.globalAlpha = 0.07 + Math.sin(t * 1.4 + i) * 0.015;
+    ctx.fillStyle = '#f6c94d';
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(GW * 0.48, -12);
+    ctx.lineTo(GW * 0.48, 12);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+  ctx.restore();
+
+  ctx.save();
+  for (const p of S.winParticles) {
+    const alpha = Math.max(0, (p.life / p.maxLife) * p.alpha);
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = p.color;
+    ctx.fillRect(Math.round(p.x), Math.round(p.y), p.size, p.size);
+  }
+  ctx.restore();
 
   // Warm golden glow fading in from edges
   const a = Math.min(t * 0.4, 0.5);
@@ -2549,35 +2842,24 @@ function drawWin() {
   // "YOU ESCAPED!" after 1.5 seconds
   if (t > 1.5) {
     const textA = Math.min((t - 1.5) * 1.2, 1);
-    ctx.textAlign = 'center';
-
-    // Main text — bright, warm
-    ctx.fillStyle = `rgba(255,255,240,${textA})`;
-    ctx.font = 'bold 18px monospace';
-    ctx.fillText('YOU ESCAPED!', GW/2, GH/2 - 20);
+    drawCenteredDigits('YOU ESCAPED', GH/2 - 26, 2, '#fff8dc', textA);
 
     // Sub text after 2.5s
     if (t > 2.5) {
       const subA = Math.min((t - 2.5) * 1, 1);
-      ctx.fillStyle = `rgba(255,250,220,${subA * 0.7})`;
-      ctx.font = '9px monospace';
-      ctx.fillText('The sunlight has never felt so warm.', GW/2, GH/2 - 4);
+      drawCenteredDigits('THE SUNLIGHT HAS NEVER FELT SO WARM.', GH/2 + 2, 1, '#fff0c4', subA * 0.75);
     }
 
     // Steps count after 3.5s
     if (t > 3.5) {
       const stA = Math.min((t - 3.5), 1);
-      ctx.fillStyle = `rgba(220,220,200,${stA * 0.6})`;
-      ctx.font = '8px monospace';
-      ctx.fillText('STEPS: ' + S.steps, GW/2, GH/2 + 12);
+      drawCenteredDigits('STEPS: ' + S.steps, GH/2 + 16, 1, '#e0dcc8', stA * 0.7);
     }
 
     // "Press R to play again" after 5s
     if (t > 5) {
       const rA = Math.min((t - 5), 1) * (0.5 + Math.sin(t * 2.5) * 0.15);
-      ctx.fillStyle = `rgba(200,220,180,${rA})`;
-      ctx.font = '8px monospace';
-      ctx.fillText(isMobile ? 'TAP TO PLAY AGAIN' : 'PRESS R TO PLAY AGAIN', GW/2, GH/2 + 28);
+      drawCenteredDigits(isMobile ? 'TAP TO PLAY AGAIN' : 'PRESS R TO PLAY AGAIN', GH/2 + 30, 1, '#d4e0b4', rA);
     }
   }
 }
@@ -2590,6 +2872,8 @@ function updateUI() {
   const prefix = mapConfig.name ? mapConfig.name + ': ' : '';
   document.getElementById('room-name').textContent = rm ? prefix + rm.title : '';
 }
+
+resetTitleParticles();
 
 (function loop() { update(); render(); requestAnimationFrame(loop); })();
 
