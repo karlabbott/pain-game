@@ -12,7 +12,9 @@
       "type": "death",
       "title": "The Pit",
       "isDeath": true,
-      "doors": []
+      "doors": [],
+      "mapX": 0.351,
+      "mapY": 0.182
     },
     {
       "id": "the-trap",
@@ -20,7 +22,9 @@
       "type": "dungeon",
       "title": "The Trap",
       "isSoftLock": true,
-      "doors": []
+      "doors": [],
+      "mapX": 0.436,
+      "mapY": 0.142
     },
     {
       "id": "room-51",
@@ -36,7 +40,9 @@
           "wall": "right",
           "target": "the-trap"
         }
-      ]
+      ],
+      "mapX": 0.445,
+      "mapY": 0.026
     },
     {
       "id": "freedom",
@@ -49,7 +55,9 @@
           "wall": "top",
           "target": "room-1"
         }
-      ]
+      ],
+      "mapX": 0.613,
+      "mapY": 0.853
     },
     {
       "id": "room-1",
@@ -79,7 +87,9 @@
           "hidden": true
         }
       ],
-      "wallText": "The low numbers\nare always safer."
+      "wallText": "The low numbers\nare always safer.",
+      "mapX": 0.521,
+      "mapY": 0.581
     },
     {
       "id": "room-2",
@@ -91,7 +101,9 @@
           "wall": "top",
           "target": "room-50"
         }
-      ]
+      ],
+      "mapX": 0.305,
+      "mapY": 0.819
     },
     {
       "id": "room-3",
@@ -108,7 +120,9 @@
           "target": "room-9"
         }
       ],
-      "wallText": "Room 9 leads\nto freedom."
+      "wallText": "Room 9 leads\nto freedom.",
+      "mapX": 0.805,
+      "mapY": 0.211
     },
     {
       "id": "room-4",
@@ -136,7 +150,9 @@
           "wall": "top",
           "target": "room-31"
         }
-      ]
+      ],
+      "mapX": 0.321,
+      "mapY": 0.107
     },
     {
       "id": "room-5",
@@ -153,7 +169,9 @@
           "target": "room-25"
         }
       ],
-      "wallText": "Never go back\nthe way you came."
+      "wallText": "Never go back\nthe way you came.",
+      "mapX": 0.968,
+      "mapY": 0.249
     },
     {
       "id": "room-6",
@@ -165,7 +183,9 @@
           "wall": "top",
           "target": "room-40"
         }
-      ]
+      ],
+      "mapX": 0.588,
+      "mapY": 0.38
     },
     {
       "id": "room-7",
@@ -177,7 +197,9 @@
           "wall": "top",
           "target": "room-42"
         }
-      ]
+      ],
+      "mapX": 0.574,
+      "mapY": 0.472
     },
     {
       "id": "room-8",
@@ -202,7 +224,9 @@
           "target": "room-33"
         }
       ],
-      "wallText": "Seek the highest\ndoor always."
+      "wallText": "Seek the highest\ndoor always.",
+      "mapX": 0.103,
+      "mapY": 0.285
     },
     {
       "id": "room-9",
@@ -218,7 +242,9 @@
           "wall": "right",
           "target": "room-25"
         }
-      ]
+      ],
+      "mapX": 0.886,
+      "mapY": 0.155
     },
     {
       "id": "room-10",
@@ -235,7 +261,9 @@
           "target": "room-37"
         }
       ],
-      "wallText": "Avoid 14 at\nall costs."
+      "wallText": "Avoid 14 at\nall costs.",
+      "mapX": 0.114,
+      "mapY": 0.683
     },
     {
       "id": "room-11",
@@ -255,7 +283,9 @@
           "wall": "bottom",
           "target": "room-4"
         }
-      ]
+      ],
+      "mapX": 0.277,
+      "mapY": 0.239
     },
     {
       "id": "room-12",
@@ -267,7 +297,9 @@
           "wall": "top",
           "target": "room-33"
         }
-      ]
+      ],
+      "mapX": 0.179,
+      "mapY": 0.248
     },
     {
       "id": "room-13",
@@ -284,7 +316,9 @@
           "target": "room-19"
         }
       ],
-      "wallText": "The key hides in\nthe lowest room."
+      "wallText": "The key hides in\nthe lowest room.",
+      "mapX": 0.425,
+      "mapY": 0.583
     },
     {
       "id": "room-14",
@@ -300,7 +334,9 @@
           "wall": "right",
           "target": "room-10"
         }
-      ]
+      ],
+      "mapX": 0.125,
+      "mapY": 0.792
     },
     {
       "id": "room-15",
@@ -321,7 +357,9 @@
           "target": "room-22"
         }
       ],
-      "wallText": "Door 22 is\nyour salvation."
+      "wallText": "Door 22 is\nyour salvation.",
+      "mapX": 0.314,
+      "mapY": 0.531
     },
     {
       "id": "room-16",
@@ -333,7 +371,9 @@
           "wall": "top",
           "target": "room-4"
         }
-      ]
+      ],
+      "mapX": 0.567,
+      "mapY": 0.173
     },
     {
       "id": "room-17",
@@ -349,7 +389,9 @@
           "wall": "right",
           "target": "room-21"
         }
-      ]
+      ],
+      "mapX": 0.14,
+      "mapY": 0.024
     },
     {
       "id": "room-18",
@@ -361,7 +403,9 @@
           "wall": "top",
           "target": "room-12"
         }
-      ]
+      ],
+      "mapX": 0.0,
+      "mapY": 0.244
     },
     {
       "id": "room-19",
@@ -377,7 +421,9 @@
           "wall": "right",
           "target": "room-15"
         }
-      ]
+      ],
+      "mapX": 0.447,
+      "mapY": 0.483
     },
     {
       "id": "room-20",
@@ -390,7 +436,9 @@
           "target": "room-1"
         }
       ],
-      "wallText": "Stay here.\nTurn back."
+      "wallText": "Stay here.\nTurn back.",
+      "mapX": 0.67,
+      "mapY": 0.502
     },
     {
       "id": "room-21",
@@ -411,7 +459,9 @@
           "target": "room-41"
         }
       ],
-      "wallText": "The courtyard\nholds the answer."
+      "wallText": "The courtyard\nholds the answer.",
+      "mapX": 0.164,
+      "mapY": 0.175
     },
     {
       "id": "room-22",
@@ -427,7 +477,9 @@
           "wall": "right",
           "target": "room-46"
         }
-      ]
+      ],
+      "mapX": 0.225,
+      "mapY": 0.51
     },
     {
       "id": "room-23",
@@ -443,7 +495,9 @@
           "wall": "right",
           "target": "room-13"
         }
-      ]
+      ],
+      "mapX": 0.352,
+      "mapY": 0.595
     },
     {
       "id": "room-25",
@@ -459,7 +513,9 @@
           "wall": "right",
           "target": "room-5"
         }
-      ]
+      ],
+      "mapX": 0.877,
+      "mapY": 0.294
     },
     {
       "id": "room-26",
@@ -484,7 +540,9 @@
           "target": "room-40"
         }
       ],
-      "wallText": "Through 40 lies\nthe shortest path."
+      "wallText": "Through 40 lies\nthe shortest path.",
+      "mapX": 0.486,
+      "mapY": 0.413
     },
     {
       "id": "room-27",
@@ -500,7 +558,9 @@
           "wall": "right",
           "target": "room-29"
         }
-      ]
+      ],
+      "mapX": 0.366,
+      "mapY": 0.266
     },
     {
       "id": "room-29",
@@ -517,7 +577,9 @@
           "target": "the-trap"
         }
       ],
-      "wallText": "Trust the even\nnumbers."
+      "wallText": "Trust the even\nnumbers.",
+      "mapX": 0.36,
+      "mapY": 0.356
     },
     {
       "id": "room-30",
@@ -533,7 +595,9 @@
           "wall": "right",
           "target": "room-40"
         }
-      ]
+      ],
+      "mapX": 0.555,
+      "mapY": 0.743
     },
     {
       "id": "room-31",
@@ -557,7 +621,9 @@
           "wall": "left",
           "target": "room-7"
         }
-      ]
+      ],
+      "mapX": 0.475,
+      "mapY": 0.251
     },
     {
       "id": "room-32",
@@ -573,7 +639,9 @@
           "wall": "right",
           "target": "room-39"
         }
-      ]
+      ],
+      "mapX": 0.896,
+      "mapY": 0.934
     },
     {
       "id": "room-33",
@@ -585,7 +653,9 @@
           "wall": "top",
           "target": "room-34"
         }
-      ]
+      ],
+      "mapX": 0.195,
+      "mapY": 0.104
     },
     {
       "id": "room-34",
@@ -597,7 +667,9 @@
           "wall": "top",
           "target": "the-pit"
         }
-      ]
+      ],
+      "mapX": 0.287,
+      "mapY": 0.0
     },
     {
       "id": "room-35",
@@ -613,7 +685,9 @@
           "wall": "right",
           "target": "room-32"
         }
-      ]
+      ],
+      "mapX": 0.727,
+      "mapY": 0.871
     },
     {
       "id": "room-36",
@@ -629,7 +703,9 @@
           "wall": "right",
           "target": "room-6"
         }
-      ]
+      ],
+      "mapX": 0.641,
+      "mapY": 0.268
     },
     {
       "id": "room-37",
@@ -658,7 +734,9 @@
           "target": "room-8"
         }
       ],
-      "wallText": "All paths from\nhere are equal."
+      "wallText": "All paths from\nhere are equal.",
+      "mapX": 0.149,
+      "mapY": 0.492
     },
     {
       "id": "room-38",
@@ -674,7 +752,9 @@
           "wall": "right",
           "target": "room-43"
         }
-      ]
+      ],
+      "mapX": 0.817,
+      "mapY": 0.937
     },
     {
       "id": "room-39",
@@ -686,7 +766,9 @@
           "wall": "top",
           "target": "room-38"
         }
-      ]
+      ],
+      "mapX": 0.956,
+      "mapY": 0.866
     },
     {
       "id": "room-40",
@@ -711,7 +793,9 @@
           "target": "the-pit"
         }
       ],
-      "wallText": "Door 15 will\nset you free."
+      "wallText": "Door 15 will\nset you free.",
+      "mapX": 0.38,
+      "mapY": 0.465
     },
     {
       "id": "room-41",
@@ -731,7 +815,9 @@
           "wall": "bottom",
           "target": "room-22"
         }
-      ]
+      ],
+      "mapX": 0.262,
+      "mapY": 0.368
     },
     {
       "id": "room-42",
@@ -756,7 +842,9 @@
           "target": "room-26"
         }
       ],
-      "wallText": "Go up."
+      "wallText": "Go up.",
+      "mapX": 0.681,
+      "mapY": 0.352
     },
     {
       "id": "room-43",
@@ -772,7 +860,9 @@
           "wall": "right",
           "target": "room-35"
         }
-      ]
+      ],
+      "mapX": 0.629,
+      "mapY": 0.963
     },
     {
       "id": "room-44",
@@ -801,7 +891,9 @@
           "target": "room-19"
         }
       ],
-      "wallText": "The walls\nare watching."
+      "wallText": "The walls\nare watching.",
+      "mapX": 0.541,
+      "mapY": 0.301
     },
     {
       "id": "room-45",
@@ -813,7 +905,9 @@
           "wall": "top",
           "target": "room-48"
         }
-      ]
+      ],
+      "mapX": 0.51,
+      "mapY": 1.0
     },
     {
       "id": "room-46",
@@ -829,7 +923,9 @@
           "wall": "right",
           "target": "room-22"
         }
-      ]
+      ],
+      "mapX": 0.242,
+      "mapY": 0.595
     },
     {
       "id": "room-47",
@@ -845,7 +941,9 @@
           "wall": "right",
           "target": "room-3"
         }
-      ]
+      ],
+      "mapX": 1.0,
+      "mapY": 0.161
     },
     {
       "id": "room-48",
@@ -861,7 +959,9 @@
           "wall": "right",
           "target": "room-30"
         }
-      ]
+      ],
+      "mapX": 0.466,
+      "mapY": 0.85
     },
     {
       "id": "room-49",
@@ -890,7 +990,9 @@
           "target": "room-48"
         }
       ],
-      "wallText": "Room 2 holds\nnothing of value."
+      "wallText": "Room 2 holds\nnothing of value.",
+      "mapX": 0.287,
+      "mapY": 0.714
     },
     {
       "id": "room-50",
@@ -920,7 +1022,9 @@
         }
       ],
       "hasKey": true,
-      "wallText": "You already\npassed the exit."
+      "wallText": "You already\npassed the exit.",
+      "mapX": 0.399,
+      "mapY": 0.683
     }
   ]
 }

@@ -10,7 +10,9 @@
       "type": "death",
       "title": "The Pit",
       "isDeath": true,
-      "doors": []
+      "doors": [],
+      "mapX": 0.672,
+      "mapY": 0.591
     },
     {
       "id": "freedom",
@@ -23,7 +25,9 @@
           "wall": "top",
           "target": "room-1"
         }
-      ]
+      ],
+      "mapX": 0.58,
+      "mapY": 1.0
     },
     {
       "id": "the-loop",
@@ -43,7 +47,9 @@
           "wall": "bottom",
           "target": "room-22"
         }
-      ]
+      ],
+      "mapX": 0.646,
+      "mapY": 0.452
     },
     {
       "id": "room-1",
@@ -76,7 +82,9 @@
           "target": "freedom",
           "hidden": true
         }
-      ]
+      ],
+      "mapX": 0.737,
+      "mapY": 0.743
     },
     {
       "id": "room-2",
@@ -100,7 +108,9 @@
           "wall": "bottom",
           "target": "room-23"
         }
-      ]
+      ],
+      "mapX": 0.74,
+      "mapY": 0.528
     },
     {
       "id": "room-3",
@@ -120,7 +130,9 @@
           "wall": "bottom",
           "target": "room-40"
         }
-      ]
+      ],
+      "mapX": 0.806,
+      "mapY": 0.416
     },
     {
       "id": "room-4",
@@ -160,7 +172,9 @@
           "wall": "left",
           "target": "room-6"
         }
-      ]
+      ],
+      "mapX": 0.522,
+      "mapY": 0.57
     },
     {
       "id": "room-5",
@@ -180,7 +194,9 @@
           "wall": "bottom",
           "target": "room-40"
         }
-      ]
+      ],
+      "mapX": 0.573,
+      "mapY": 0.329
     },
     {
       "id": "room-6",
@@ -200,7 +216,9 @@
           "wall": "bottom",
           "target": "room-3"
         }
-      ]
+      ],
+      "mapX": 0.563,
+      "mapY": 0.52
     },
     {
       "id": "room-7",
@@ -220,7 +238,9 @@
           "wall": "bottom",
           "target": "room-12"
         }
-      ]
+      ],
+      "mapX": 0.526,
+      "mapY": 0.824
     },
     {
       "id": "room-8",
@@ -244,7 +264,9 @@
           "wall": "left",
           "target": "room-4"
         }
-      ]
+      ],
+      "mapX": 0.577,
+      "mapY": 0.419
     },
     {
       "id": "room-9",
@@ -272,7 +294,9 @@
           "wall": "top",
           "target": "room-22"
         }
-      ]
+      ],
+      "mapX": 0.617,
+      "mapY": 0.709
     },
     {
       "id": "room-10",
@@ -304,7 +328,9 @@
           "wall": "left",
           "target": "room-45"
         }
-      ]
+      ],
+      "mapX": 0.411,
+      "mapY": 0.635
     },
     {
       "id": "room-11",
@@ -324,7 +350,9 @@
           "wall": "bottom",
           "target": "room-40"
         }
-      ]
+      ],
+      "mapX": 0.549,
+      "mapY": 0.74
     },
     {
       "id": "room-12",
@@ -344,7 +372,9 @@
           "wall": "bottom",
           "target": "room-28"
         }
-      ]
+      ],
+      "mapX": 0.276,
+      "mapY": 0.778
     },
     {
       "id": "room-13",
@@ -364,7 +394,9 @@
           "wall": "bottom",
           "target": "room-10"
         }
-      ]
+      ],
+      "mapX": 0.37,
+      "mapY": 0.849
     },
     {
       "id": "room-14",
@@ -385,7 +417,9 @@
           "target": "room-6"
         }
       ],
-      "hasTable": true
+      "hasTable": true,
+      "mapX": 0.457,
+      "mapY": 0.517
     },
     {
       "id": "room-15",
@@ -411,7 +445,9 @@
           "locked": true,
           "hidden": true
         }
-      ]
+      ],
+      "mapX": 0.738,
+      "mapY": 0.637
     },
     {
       "id": "room-16",
@@ -427,7 +463,9 @@
           "wall": "right",
           "target": "room-2"
         }
-      ]
+      ],
+      "mapX": 0.844,
+      "mapY": 0.504
     },
     {
       "id": "room-17",
@@ -447,7 +485,9 @@
           "wall": "bottom",
           "target": "room-9"
         }
-      ]
+      ],
+      "mapX": 0.577,
+      "mapY": 0.638
     },
     {
       "id": "room-18",
@@ -471,7 +511,9 @@
           "wall": "left",
           "target": "the-loop"
         }
-      ]
+      ],
+      "mapX": 0.497,
+      "mapY": 0.434
     },
     {
       "id": "room-19",
@@ -487,7 +529,9 @@
           "wall": "right",
           "target": "room-15"
         }
-      ]
+      ],
+      "mapX": 0.694,
+      "mapY": 0.385
     },
     {
       "id": "room-20",
@@ -507,7 +551,9 @@
           "wall": "bottom",
           "target": "room-44"
         }
-      ]
+      ],
+      "mapX": 0.394,
+      "mapY": 0.736
     },
     {
       "id": "room-21",
@@ -527,7 +573,9 @@
           "wall": "bottom",
           "target": "room-4"
         }
-      ]
+      ],
+      "mapX": 0.489,
+      "mapY": 0.691
     },
     {
       "id": "room-22",
@@ -548,7 +596,9 @@
           "target": "room-30"
         }
       ],
-      "hasSign": true
+      "hasSign": true,
+      "mapX": 0.841,
+      "mapY": 0.682
     },
     {
       "id": "room-23",
@@ -564,7 +614,9 @@
           "wall": "right",
           "target": "room-2"
         }
-      ]
+      ],
+      "mapX": 0.89,
+      "mapY": 0.759
     },
     {
       "id": "room-25",
@@ -580,7 +632,9 @@
           "wall": "right",
           "target": "room-5"
         }
-      ]
+      ],
+      "mapX": 0.383,
+      "mapY": 0.33
     },
     {
       "id": "room-26",
@@ -592,7 +646,9 @@
           "wall": "bottom",
           "target": "the-pit"
         }
-      ]
+      ],
+      "mapX": 0.688,
+      "mapY": 0.798
     },
     {
       "id": "room-27",
@@ -608,7 +664,9 @@
           "wall": "right",
           "target": "room-10"
         }
-      ]
+      ],
+      "mapX": 0.338,
+      "mapY": 0.452
     },
     {
       "id": "room-28",
@@ -620,7 +678,9 @@
           "wall": "bottom",
           "target": "room-12"
         }
-      ]
+      ],
+      "mapX": 0.0,
+      "mapY": 0.778
     },
     {
       "id": "room-29",
@@ -632,7 +692,9 @@
           "wall": "bottom",
           "target": "room-10"
         }
-      ]
+      ],
+      "mapX": 0.122,
+      "mapY": 0.688
     },
     {
       "id": "room-30",
@@ -644,7 +706,9 @@
           "wall": "bottom",
           "target": "the-pit"
         }
-      ]
+      ],
+      "mapX": 1.0,
+      "mapY": 0.706
     },
     {
       "id": "room-31",
@@ -660,7 +724,9 @@
           "wall": "right",
           "target": "room-32"
         }
-      ]
+      ],
+      "mapX": 0.129,
+      "mapY": 0.303
     },
     {
       "id": "room-32",
@@ -684,7 +750,9 @@
           "wall": "left",
           "target": "room-38"
         }
-      ]
+      ],
+      "mapX": 0.302,
+      "mapY": 0.311
     },
     {
       "id": "room-33",
@@ -700,7 +768,9 @@
           "wall": "right",
           "target": "the-pit"
         }
-      ]
+      ],
+      "mapX": 0.722,
+      "mapY": 0.448
     },
     {
       "id": "room-34",
@@ -716,7 +786,9 @@
           "wall": "right",
           "target": "the-pit"
         }
-      ]
+      ],
+      "mapX": 0.503,
+      "mapY": 0.252
     },
     {
       "id": "room-35",
@@ -732,7 +804,9 @@
           "wall": "right",
           "target": "room-36"
         }
-      ]
+      ],
+      "mapX": 0.308,
+      "mapY": 0.079
     },
     {
       "id": "room-36",
@@ -744,7 +818,9 @@
           "wall": "bottom",
           "target": "room-35"
         }
-      ]
+      ],
+      "mapX": 0.204,
+      "mapY": 0.152
     },
     {
       "id": "room-37",
@@ -768,7 +844,9 @@
           "wall": "left",
           "target": "room-39"
         }
-      ]
+      ],
+      "mapX": 0.395,
+      "mapY": 0.233
     },
     {
       "id": "room-38",
@@ -780,7 +858,9 @@
           "wall": "bottom",
           "target": "room-36"
         }
-      ]
+      ],
+      "mapX": 0.188,
+      "mapY": 0.328
     },
     {
       "id": "room-39",
@@ -792,7 +872,9 @@
           "wall": "bottom",
           "target": "room-37"
         }
-      ]
+      ],
+      "mapX": 0.429,
+      "mapY": 0.0
     },
     {
       "id": "room-40",
@@ -848,7 +930,9 @@
           "wall": "left",
           "target": "room-49"
         }
-      ]
+      ],
+      "mapX": 0.63,
+      "mapY": 0.538
     },
     {
       "id": "room-41",
@@ -860,7 +944,9 @@
           "wall": "bottom",
           "target": "room-40"
         }
-      ]
+      ],
+      "mapX": 0.942,
+      "mapY": 0.277
     },
     {
       "id": "room-42",
@@ -884,7 +970,9 @@
           "wall": "left",
           "target": "room-37"
         }
-      ]
+      ],
+      "mapX": 0.431,
+      "mapY": 0.392
     },
     {
       "id": "room-43",
@@ -896,7 +984,9 @@
           "wall": "bottom",
           "target": "the-loop"
         }
-      ]
+      ],
+      "mapX": 0.293,
+      "mapY": 0.521
     },
     {
       "id": "room-44",
@@ -908,7 +998,9 @@
           "wall": "bottom",
           "target": "room-43"
         }
-      ]
+      ],
+      "mapX": 0.334,
+      "mapY": 0.64
     },
     {
       "id": "room-45",
@@ -920,7 +1012,9 @@
           "wall": "bottom",
           "target": "room-10"
         }
-      ]
+      ],
+      "mapX": 0.187,
+      "mapY": 0.876
     },
     {
       "id": "room-46",
@@ -937,7 +1031,9 @@
           "wall": "right",
           "target": "the-loop"
         }
-      ]
+      ],
+      "mapX": 0.977,
+      "mapY": 0.519
     },
     {
       "id": "room-47",
@@ -953,7 +1049,9 @@
           "wall": "right",
           "target": "the-loop"
         }
-      ]
+      ],
+      "mapX": 0.969,
+      "mapY": 0.397
     },
     {
       "id": "room-48",
@@ -965,7 +1063,9 @@
           "wall": "bottom",
           "target": "the-loop"
         }
-      ]
+      ],
+      "mapX": 0.908,
+      "mapY": 0.569
     },
     {
       "id": "room-49",
@@ -977,7 +1077,9 @@
           "wall": "bottom",
           "target": "room-2"
         }
-      ]
+      ],
+      "mapX": 0.806,
+      "mapY": 0.604
     },
     {
       "id": "room-50",
@@ -1002,7 +1104,9 @@
           "target": "room-2"
         }
       ],
-      "hasKey": true
+      "hasKey": true,
+      "mapX": 0.661,
+      "mapY": 0.306
     }
   ]
 }

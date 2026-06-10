@@ -10,7 +10,9 @@
       "type": "death",
       "title": "The Pit",
       "isDeath": true,
-      "doors": []
+      "doors": [],
+      "mapX": 0.609,
+      "mapY": 0.319
     },
     {
       "id": "freedom",
@@ -23,7 +25,9 @@
           "wall": "top",
           "target": "room-1"
         }
-      ]
+      ],
+      "mapX": 0.452,
+      "mapY": 0.889
     },
     {
       "id": "room-1",
@@ -52,7 +56,9 @@
           "target": "freedom",
           "hidden": true
         }
-      ]
+      ],
+      "mapX": 0.726,
+      "mapY": 0.641
     },
     {
       "id": "room-2",
@@ -64,7 +70,9 @@
           "wall": "bottom",
           "target": "room-8"
         }
-      ]
+      ],
+      "mapX": 0.742,
+      "mapY": 0.41
     },
     {
       "id": "room-3",
@@ -84,7 +92,9 @@
           "wall": "bottom",
           "target": "room-42"
         }
-      ]
+      ],
+      "mapX": 0.806,
+      "mapY": 0.486
     },
     {
       "id": "room-4",
@@ -132,7 +142,9 @@
           "wall": "left",
           "target": "room-31"
         }
-      ]
+      ],
+      "mapX": 0.696,
+      "mapY": 0.265
     },
     {
       "id": "room-5",
@@ -148,7 +160,9 @@
           "wall": "right",
           "target": "room-13"
         }
-      ]
+      ],
+      "mapX": 0.226,
+      "mapY": 0.098
     },
     {
       "id": "room-6",
@@ -168,7 +182,9 @@
           "wall": "bottom",
           "target": "room-25"
         }
-      ]
+      ],
+      "mapX": 0.688,
+      "mapY": 0.133
     },
     {
       "id": "room-7",
@@ -188,7 +204,9 @@
           "wall": "bottom",
           "target": "room-31"
         }
-      ]
+      ],
+      "mapX": 0.796,
+      "mapY": 0.0
     },
     {
       "id": "room-8",
@@ -212,7 +230,9 @@
           "wall": "left",
           "target": "room-38"
         }
-      ]
+      ],
+      "mapX": 0.562,
+      "mapY": 0.403
     },
     {
       "id": "room-9",
@@ -236,7 +256,9 @@
           "wall": "left",
           "target": "room-2"
         }
-      ]
+      ],
+      "mapX": 0.841,
+      "mapY": 0.383
     },
     {
       "id": "room-10",
@@ -260,7 +282,9 @@
           "wall": "right",
           "target": "room-11"
         }
-      ]
+      ],
+      "mapX": 0.76,
+      "mapY": 0.239
     },
     {
       "id": "room-11",
@@ -272,7 +296,9 @@
           "wall": "bottom",
           "target": "the-pit"
         }
-      ]
+      ],
+      "mapX": 0.598,
+      "mapY": 0.249
     },
     {
       "id": "room-12",
@@ -288,7 +314,9 @@
           "wall": "right",
           "target": "room-31"
         }
-      ]
+      ],
+      "mapX": 0.881,
+      "mapY": 0.029
     },
     {
       "id": "room-13",
@@ -304,7 +332,9 @@
           "wall": "right",
           "target": "room-31"
         }
-      ]
+      ],
+      "mapX": 0.369,
+      "mapY": 0.051
     },
     {
       "id": "room-14",
@@ -316,7 +346,9 @@
           "wall": "bottom",
           "target": "room-31"
         }
-      ]
+      ],
+      "mapX": 1.0,
+      "mapY": 0.26
     },
     {
       "id": "room-15",
@@ -328,7 +360,9 @@
           "wall": "bottom",
           "target": "room-17"
         }
-      ]
+      ],
+      "mapX": 0.68,
+      "mapY": 0.898
     },
     {
       "id": "room-16",
@@ -352,7 +386,9 @@
           "wall": "left",
           "target": "room-28"
         }
-      ]
+      ],
+      "mapX": 0.153,
+      "mapY": 0.266
     },
     {
       "id": "room-17",
@@ -368,7 +404,9 @@
           "wall": "right",
           "target": "room-39"
         }
-      ]
+      ],
+      "mapX": 0.699,
+      "mapY": 1.0
     },
     {
       "id": "room-18",
@@ -388,7 +426,9 @@
           "wall": "bottom",
           "target": "room-32"
         }
-      ]
+      ],
+      "mapX": 0.096,
+      "mapY": 0.203
     },
     {
       "id": "room-19",
@@ -421,7 +461,9 @@
           "target": "room-7",
           "holdTime": 0
         }
-      ]
+      ],
+      "mapX": 0.922,
+      "mapY": 0.112
     },
     {
       "id": "room-20",
@@ -437,7 +479,9 @@
           "wall": "right",
           "target": "room-6"
         }
-      ]
+      ],
+      "mapX": 0.856,
+      "mapY": 0.286
     },
     {
       "id": "room-21",
@@ -461,7 +505,9 @@
           "wall": "left",
           "target": "room-36"
         }
-      ]
+      ],
+      "mapX": 0.298,
+      "mapY": 0.51
     },
     {
       "id": "room-22",
@@ -473,7 +519,9 @@
           "wall": "bottom",
           "target": "room-27"
         }
-      ]
+      ],
+      "mapX": 0.513,
+      "mapY": 0.232
     },
     {
       "id": "room-23",
@@ -485,7 +533,9 @@
           "wall": "bottom",
           "target": "room-38"
         }
-      ]
+      ],
+      "mapX": 0.558,
+      "mapY": 0.876
     },
     {
       "id": "room-25",
@@ -497,7 +547,9 @@
           "wall": "bottom",
           "target": "room-40"
         }
-      ]
+      ],
+      "mapX": 0.615,
+      "mapY": 0.081
     },
     {
       "id": "room-26",
@@ -513,7 +565,9 @@
           "wall": "right",
           "target": "room-23"
         }
-      ]
+      ],
+      "mapX": 0.475,
+      "mapY": 0.783
     },
     {
       "id": "room-27",
@@ -525,7 +579,9 @@
           "wall": "bottom",
           "target": "room-34"
         }
-      ]
+      ],
+      "mapX": 0.66,
+      "mapY": 0.434
     },
     {
       "id": "room-28",
@@ -545,7 +601,9 @@
           "wall": "bottom",
           "target": "room-18"
         }
-      ]
+      ],
+      "mapX": 0.296,
+      "mapY": 0.16
     },
     {
       "id": "room-29",
@@ -565,7 +623,9 @@
           "wall": "bottom",
           "target": "room-15"
         }
-      ]
+      ],
+      "mapX": 0.749,
+      "mapY": 0.808
     },
     {
       "id": "room-30",
@@ -581,7 +641,9 @@
           "wall": "right",
           "target": "room-18"
         }
-      ]
+      ],
+      "mapX": 0.0,
+      "mapY": 0.297
     },
     {
       "id": "room-31",
@@ -597,7 +659,9 @@
           "wall": "right",
           "target": "room-14"
         }
-      ]
+      ],
+      "mapX": 0.643,
+      "mapY": 0.189
     },
     {
       "id": "room-32",
@@ -609,7 +673,9 @@
           "wall": "bottom",
           "target": "room-35"
         }
-      ]
+      ],
+      "mapX": 0.25,
+      "mapY": 0.299
     },
     {
       "id": "room-33",
@@ -633,7 +699,9 @@
           "wall": "left",
           "target": "room-9"
         }
-      ]
+      ],
+      "mapX": 0.844,
+      "mapY": 0.177
     },
     {
       "id": "room-34",
@@ -645,7 +713,9 @@
           "wall": "bottom",
           "target": "room-2"
         }
-      ]
+      ],
+      "mapX": 0.594,
+      "mapY": 0.5
     },
     {
       "id": "room-35",
@@ -657,7 +727,9 @@
           "wall": "bottom",
           "target": "room-36"
         }
-      ]
+      ],
+      "mapX": 0.066,
+      "mapY": 0.418
     },
     {
       "id": "room-36",
@@ -669,7 +741,9 @@
           "wall": "bottom",
           "target": "room-37"
         }
-      ]
+      ],
+      "mapX": 0.156,
+      "mapY": 0.552
     },
     {
       "id": "room-37",
@@ -685,7 +759,9 @@
           "wall": "right",
           "target": "room-38"
         }
-      ]
+      ],
+      "mapX": 0.336,
+      "mapY": 0.592
     },
     {
       "id": "room-38",
@@ -701,7 +777,9 @@
           "wall": "right",
           "target": "room-39"
         }
-      ]
+      ],
+      "mapX": 0.465,
+      "mapY": 0.688
     },
     {
       "id": "room-39",
@@ -717,7 +795,9 @@
           "wall": "right",
           "target": "room-34"
         }
-      ]
+      ],
+      "mapX": 0.632,
+      "mapY": 0.782
     },
     {
       "id": "room-40",
@@ -741,7 +821,9 @@
           "wall": "left",
           "target": "room-25"
         }
-      ]
+      ],
+      "mapX": 0.538,
+      "mapY": 0.151
     },
     {
       "id": "room-41",
@@ -761,7 +843,9 @@
           "wall": "bottom",
           "target": "room-46"
         }
-      ]
+      ],
+      "mapX": 0.42,
+      "mapY": 0.246
     },
     {
       "id": "room-42",
@@ -773,7 +857,9 @@
           "wall": "bottom",
           "target": "room-43"
         }
-      ]
+      ],
+      "mapX": 0.64,
+      "mapY": 0.653
     },
     {
       "id": "room-43",
@@ -785,7 +871,9 @@
           "wall": "bottom",
           "target": "room-44"
         }
-      ]
+      ],
+      "mapX": 0.541,
+      "mapY": 0.614
     },
     {
       "id": "room-44",
@@ -797,7 +885,9 @@
           "wall": "bottom",
           "target": "room-46"
         }
-      ]
+      ],
+      "mapX": 0.67,
+      "mapY": 0.526
     },
     {
       "id": "room-45",
@@ -817,7 +907,9 @@
           "wall": "bottom",
           "target": "room-10"
         }
-      ]
+      ],
+      "mapX": 0.777,
+      "mapY": 0.116
     },
     {
       "id": "room-46",
@@ -829,7 +921,9 @@
           "wall": "bottom",
           "target": "room-50"
         }
-      ]
+      ],
+      "mapX": 0.466,
+      "mapY": 0.395
     },
     {
       "id": "room-47",
@@ -845,7 +939,9 @@
           "wall": "right",
           "target": "room-49"
         }
-      ]
+      ],
+      "mapX": 0.918,
+      "mapY": 0.605
     },
     {
       "id": "room-48",
@@ -865,7 +961,9 @@
           "wall": "bottom",
           "target": "room-50"
         }
-      ]
+      ],
+      "mapX": 0.965,
+      "mapY": 0.394
     },
     {
       "id": "room-49",
@@ -882,7 +980,9 @@
           "wall": "right",
           "target": "room-27"
         }
-      ]
+      ],
+      "mapX": 0.834,
+      "mapY": 0.633
     },
     {
       "id": "room-50",
@@ -919,7 +1019,9 @@
           "target": "room-11"
         }
       ],
-      "hasKey": true
+      "hasKey": true,
+      "mapX": 0.683,
+      "mapY": 0.333
     }
   ]
 }

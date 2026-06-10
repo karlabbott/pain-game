@@ -610,6 +610,7 @@ const S = {
   particleDripTimer: 0, particleEmberTimer: 0,
   titleParticles: [], titleDustTimer: 0, titleEmberTimer: 0,
   deathDebris: [], winParticles: [], winParticleTimer: 0,
+  visited: {},
 };
 
 // ═══════════════════════════════════════════════
@@ -907,6 +908,8 @@ function startGame() {
   S.started=true;
   S.intro=true; S.introTimer=0; S.introPhase='outside';
   S.room = mapConfig.startRoom || 'room-1';
+  S.visited = {};
+  S.visited[S.room] = { wall: 'bottom', count: 0 };
   S.steps=0;
   S.titleTime = 0;
   S.footstepTimer=0; resetParticles();
@@ -928,6 +931,7 @@ function restartGame() {
   S.dir='down'; S.moving=false; S.aFrame=0; S.aTimer=0;
   S.fadeA=0; S.trans=false; S.tPhase=null;
   S.steps=0; S.keyCount=0; S.pickedKeys={}; S.openedDoors={};
+  S.visited={}; S.visited[S.room]={wall:'bottom', count:0};
   S.dead=false; S.deathTimer=0; S.blocked=0;
   S.knockX=0; S.knockY=0; S.flash=0;
   S.won=false; S.winTimer=0;
@@ -945,6 +949,7 @@ function returnToTitle() {
   S.won = false; S.winTimer = 0;
   S.dead = false; S.deathTimer = 0;
   S.intro = false;
+  S.visited = {};
   S.walkTarget = null; S.walkCallback = null;
   S.footstepTimer = 0; resetParticles();
   S.titleTime = 0;
@@ -2084,6 +2089,10 @@ function updateTrans() {
     S.fadeA+=.06;
     if (S.fadeA>=1) {
       S.fadeA=1; S.room=S.nextRoom;
+      if (!S.visited[S.room]) {
+        S.visited[S.room] = { wall: S.nextWall, count: 0 };
+      }
+      S.visited[S.room].count++;
       const sp=spawnPos(OPP[S.nextWall]);
       S.px=sp.x; S.py=sp.y; S.dir=sp.dir;
       S.tPhase='in'; updateUI();
@@ -2263,6 +2272,7 @@ function render() {
     ctx.translate(Math.round((Math.random() - 0.5) * 6), Math.round((Math.random() - 0.5) * 6));
   }
   drawFloor(th);
+  drawFootprints(rm);
   drawFloorNum(rm, th);
   drawKeys(rm);
   drawDecor(th);
@@ -2278,6 +2288,7 @@ function render() {
   drawVignette();
   drawKeyUI();
   drawMoveCounter();
+  drawMinimap();
   drawFade();
   drawDeath();
   drawWin();
@@ -2287,6 +2298,125 @@ function render() {
 function drawFloor(th, roomType = curRoom().type) {
   const tex = getThemeTextures(roomType, th);
   ctx.drawImage(tex.floor, PLAY_L, PLAY_T);
+}
+
+function drawFootprintMark(x, y, vertical) {
+  if (vertical) {
+    ctx.fillRect(x, y, 1, 2);
+    ctx.fillRect(x + 1, y, 1, 1);
+    ctx.fillRect(x - 1, y + 1, 1, 1);
+  } else {
+    ctx.fillRect(x, y, 2, 1);
+    ctx.fillRect(x, y - 1, 1, 1);
+    ctx.fillRect(x + 1, y + 1, 1, 1);
+  }
+}
+
+function drawFootprints(rm) {
+  const visit = S.visited[rm.id];
+  if (!visit || visit.count <= 0) return;
+
+  const entryWall = OPP[visit.wall] || 'bottom';
+  const sp = spawnPos(entryWall);
+  const stepCount = 2 + Math.floor(noise2d(rm.num, 0, 71) * 2);
+  const forward = {
+    top: {x: 0, y: 1},
+    bottom: {x: 0, y: -1},
+    left: {x: 1, y: 0},
+    right: {x: -1, y: 0},
+  }[entryWall] || {x: 0, y: -1};
+  const side = {x: -forward.y, y: forward.x};
+  const vertical = forward.y !== 0;
+
+  ctx.fillStyle = 'rgba(0,0,0,0.12)';
+  for (let i = 0; i < stepCount; i++) {
+    const stride = 9 + i * 5 + Math.floor(noise2d(rm.num, i, 73) * 3);
+    const spread = i % 2 === 0 ? -2 : 2;
+    const jitterF = Math.floor((noise2d(rm.num, i, 79) - 0.5) * 4);
+    const jitterS = Math.floor((noise2d(rm.num, i, 83) - 0.5) * 3);
+    const fx = Math.round(sp.x + forward.x * (stride + jitterF) + side.x * (spread + jitterS));
+    const fy = Math.round(sp.y + forward.y * (stride + jitterF) + side.y * (spread + jitterS));
+    drawFootprintMark(
+      Math.max(PLAY_L + 3, Math.min(PLAY_R - 4, fx)),
+      Math.max(PLAY_T + 3, Math.min(PLAY_B - 4, fy)),
+      vertical
+    );
+  }
+}
+
+function minimapPoint(rm, mx, my, mw, mh, pad) {
+  if (!rm || typeof rm.mapX !== 'number' || typeof rm.mapY !== 'number') return null;
+  return {
+    x: mx + pad + rm.mapX * (mw - pad * 2),
+    y: my + pad + rm.mapY * (mh - pad * 2),
+  };
+}
+
+function drawMinimap() {
+  if (S.intro || S.dead || S.won || !S.started) return;
+
+  const MX = 4, MY = GH - 72;
+  const MW = 64, MH = 50;
+  const PAD = 3;
+
+  ctx.fillStyle = 'rgba(0,0,0,0.55)';
+  ctx.fillRect(MX, MY, MW, MH);
+  ctx.strokeStyle = 'rgba(200,180,140,0.15)';
+  ctx.strokeRect(MX, MY, MW, MH);
+
+  ctx.lineWidth = 1;
+  for (const rm of ROOMS) {
+    if (!S.visited[rm.id]) continue;
+    const rp = minimapPoint(rm, MX, MY, MW, MH, PAD);
+    if (!rp) continue;
+
+    for (const d of rm.doors) {
+      const tgt = roomMap[d.target];
+      if (!tgt || !S.visited[tgt.id] || !isDoorVisible(d)) continue;
+      const tp = minimapPoint(tgt, MX, MY, MW, MH, PAD);
+      if (!tp) continue;
+      ctx.strokeStyle = 'rgba(120,110,90,0.3)';
+      ctx.beginPath();
+      ctx.moveTo(Math.round(rp.x), Math.round(rp.y));
+      ctx.lineTo(Math.round(tp.x), Math.round(tp.y));
+      ctx.stroke();
+    }
+  }
+
+  for (const rm of ROOMS) {
+    if (!S.visited[rm.id]) continue;
+    const p = minimapPoint(rm, MX, MY, MW, MH, PAD);
+    if (!p) continue;
+    const rx = Math.round(p.x), ry = Math.round(p.y);
+
+    if (rm.id === S.room) {
+      ctx.fillStyle = `rgba(255,220,100,${0.7 + Math.sin(S.time * 4) * 0.2})`;
+      ctx.fillRect(rx - 1, ry - 1, 3, 3);
+    } else if (rm.isDeath || rm.isSoftLock) {
+      ctx.fillStyle = 'rgba(180,50,40,0.5)';
+      ctx.fillRect(rx - 1, ry - 1, 3, 3);
+    } else {
+      ctx.fillStyle = 'rgba(160,150,130,0.4)';
+      ctx.fillRect(rx, ry, 2, 2);
+    }
+  }
+}
+
+function drawDoorScuffs(z, wall, seed) {
+  ctx.fillStyle = 'rgba(0,0,0,0.12)';
+  for (let i = 0; i < 3; i++) {
+    const along = 4 + i * 5 + Math.floor(noise2d(seed, i, 97) * 4);
+    const inset = 2 + Math.floor(noise2d(seed, i, 101) * 2);
+    if (wall === 'top') {
+      ctx.fillRect(Math.round(z.x + along), z.y + z.h - inset, 2, 1);
+    } else if (wall === 'bottom') {
+      ctx.fillRect(Math.round(z.x + along), z.y + inset - 1, 2, 1);
+    } else if (wall === 'left') {
+      ctx.fillRect(z.x + z.w - inset, Math.round(z.y + along), 1, 2);
+    } else {
+      ctx.fillRect(z.x + inset - 1, Math.round(z.y + along), 1, 2);
+    }
+  }
 }
 
 function drawFloorNum(rm, th) {
@@ -2555,6 +2685,10 @@ function drawDoors(rm, th) {
     ctx.fillStyle='rgba(20,18,14,0.7)';
     ctx.fillRect(Math.floor(nx)-1, Math.floor(ny)-1, tw+2, tth+2);
     drawDigits(ctx, ns, Math.floor(nx), Math.floor(ny), scale, '#8a7a5a');
+
+    if (S.visited[d.target]) {
+      drawDoorScuffs(z, d.wall, rm.num * 131 + target.num * 17);
+    }
   }
 }
 
