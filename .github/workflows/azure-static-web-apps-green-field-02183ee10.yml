@@ -21,7 +21,7 @@ jobs:
           lfs: false
       - name: Stamp build version
         run: |
-          VERSION=$(date -u +"%Y%m%d%H%M")
+          VERSION=$(TZ='America/Los_Angeles' date +"%Y%m%d%H%M")
           sed -i "s|id=\"build-version\">[0-9]*<|id=\"build-version\">${VERSION}<|" index.html
       - name: Build And Deploy
         id: builddeploy
