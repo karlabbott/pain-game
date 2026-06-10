@@ -310,6 +310,79 @@ Object.keys(SP).forEach(key => {
   spriteImg[key] = c;
 });
 
+function buildPatternCanvas(pattern, palette) {
+  const c = document.createElement('canvas');
+  c.width = pattern[0].length;
+  c.height = pattern.length;
+  const cx = c.getContext('2d');
+  pattern.forEach((row, y) => {
+    for (let x = 0; x < row.length; x++) {
+      const ci = parseInt(row[x], 10);
+      if (ci > 0 && palette[ci]) {
+        cx.fillStyle = palette[ci];
+        cx.fillRect(x, y, 1, 1);
+      }
+    }
+  });
+  return c;
+}
+
+const NPC_HOODED = [
+  '00011111000','00111111100','01111111110','01133333110',
+  '01136663110','01133333110','00111111100','00144444100',
+  '00144444100','01144444110','01144444110','00114441100',
+  '00011111000','00011011000',
+];
+const NPC_HOODED_PAL = [null, '#2a1e28', '#1a1218', '#d4a878', '#3a2838', '#4a3a4a', '#6a5a6a'];
+
+const NPC_SKELETON = [
+  '00001110000','00011111000','00111111100','00166666100',
+  '00161161100','00166666100','00016661000','00011111000',
+  '00111111100','00016661000','00011111000','00011011000',
+  '00011011000','00010010000',
+];
+const NPC_SKELETON_PAL = [null, '#c8c0b0', '#0a0808', '#2a2420', '#8a8070', null, '#c8c0b0'];
+
+const NPC_GHOST = [
+  '00011111000','00111111100','01111111110','01133333110',
+  '01133333110','01131131110','01133333110','00111111100',
+  '01111111110','01111111110','01111111110','01010101010',
+  '01010101010','00000000000',
+];
+const NPC_GHOST_PAL = [null, 'rgba(180,200,220,0.5)', '#0a0a1a', '#6080a0'];
+
+const npcSprites = {
+  hooded: buildPatternCanvas(NPC_HOODED, NPC_HOODED_PAL),
+  skeleton: buildPatternCanvas(NPC_SKELETON, NPC_SKELETON_PAL),
+  ghost: buildPatternCanvas(NPC_GHOST, NPC_GHOST_PAL),
+};
+
+const NPC_LIES = [
+  'ROOM 40 IS THE WAY OUT.',
+  'NEVER GO LEFT.',
+  'THE KEY IS IN ROOM 3.',
+  'TRUST THE SIGNS.',
+  'ROOM 24 IS SAFE.',
+  'STAY AWAY FROM ROOM 50.',
+  'GO BACK THE WAY YOU CAME.',
+  'THE EXIT IS NEARBY.',
+  'I FOUND THE KEY IN ROOM 12.',
+  'ROOM 28 HAS A SECRET.',
+  'ALWAYS GO RIGHT.',
+  'THE PIT IS JUST A MYTH.',
+  'HIGHER NUMBERS ARE SAFER.',
+  "I'VE BEEN HERE FOR YEARS.",
+  'THERE IS NO ESCAPE.',
+];
+
+const NPC_TRUTHS = [
+  'THE KEY HIDES WHERE\nNUMBERS ARE HIGHEST.',
+  'ROOM 1 IS MORE THAN\nIT SEEMS.',
+  'SOME DOORS ONLY APPEAR\nWITH THE KEY.',
+  'COUNT YOUR STEPS\nCAREFULLY.',
+  'NOT ALL SIGNS TELL\nTHE TRUTH.',
+];
+
 // ═══════════════════════════════════════════════
 //  ROOM THEMES
 // ═══════════════════════════════════════════════
@@ -624,6 +697,9 @@ const S = {
   roomHistory: [],
   footstepTimer: 0, particles: [],
   particleDripTimer: 0, particleEmberTimer: 0,
+  vx: 0, vy: 0,
+  roomHazard: null, roomTraps: [], windDir: null,
+  npcData: null, npcBubbleAlpha: 0,
   titleParticles: [], titleDustTimer: 0, titleEmberTimer: 0,
   deathDebris: [], winParticles: [], winParticleTimer: 0,
   visited: {},
@@ -929,6 +1005,8 @@ function startGame() {
   S.roomHistory = [roomMap[S.room].num];
   S.steps=0;
   S.titleTime = 0;
+  clearRoomFeatures();
+  refreshRoomFeatures();
   S.footstepTimer=0; resetParticles();
   updateStepDisplay();
   document.getElementById('title-screen').classList.add('hidden');
@@ -955,6 +1033,8 @@ function restartGame() {
   S.knockX=0; S.knockY=0; S.flash=0;
   S.won=false; S.winTimer=0;
   S.tableTimer=0; S.tableTouching=false;
+  clearRoomFeatures();
+  refreshRoomFeatures();
   S.walkTarget=null; S.walkCallback=null;
   S.footstepTimer=0; S.deathDebris=[]; S.winParticles=[]; resetParticles();
   recomputeLockedPairs();
@@ -972,6 +1052,7 @@ function returnToTitle() {
   S.walkTarget = null; S.walkCallback = null;
   S.footstepTimer = 0; resetParticles();
   S.titleTime = 0;
+  clearRoomFeatures();
   S.deathDebris = [];
   S.winParticles = [];
   resetTitleParticles();
@@ -1538,6 +1619,11 @@ function sfxWin() {
 function curRoom() { return roomMap[S.room]; }
 function curTheme() { return THEMES[curRoom().type]; }
 const OPP = {top:'bottom',bottom:'top',left:'right',right:'left'};
+const HAZARD_INFO = {
+  ice: {label: 'ICE', color: '#bcd8f0'},
+  wind: {label: 'WIND', color: '#c8d0d8'},
+  trap: {label: 'TRAP', color: '#a86c60'},
+};
 
 // Count all locked doors in the maze (for exit gate)
 // Count unique locked door PAIRS in the maze (doorPair is bidirectional)
@@ -1559,6 +1645,108 @@ function hasDoor(room, wall) { return room.doors.some(d => d.wall===wall && isDo
 function doorPair(a,b) { return [a,b].sort().join(':'); }
 function isDoorLocked(d) { return d.locked && !S.openedDoors[doorPair(S.room,d.target)]; }
 const KEY_POS = {x:GW*0.62, y:(PLAY_T+PLAY_B)/2-15};
+
+function roomSkipsFeatures(rm) {
+  if (!rm || rm.isDeath || rm.isWin || rm.isSoftLock || rm.type === 'outside') return true;
+  return rm.id === (mapConfig.startRoom || 'room-1');
+}
+
+function getRoomHazard(rm) {
+  if (roomSkipsFeatures(rm)) return null;
+  const h = noise2d(rm.num, 0, 777);
+  if (h < 0.12) return 'ice';
+  if (h < 0.24) return 'wind';
+  if (h < 0.36) return 'trap';
+  return null;
+}
+
+function getWindDir(rm) {
+  const w = noise2d(rm.num, 1, 888);
+  if (w < 0.25) return {x: -0.3, y: 0};
+  if (w < 0.5) return {x: 0.3, y: 0};
+  if (w < 0.75) return {x: 0, y: -0.3};
+  return {x: 0, y: 0.3};
+}
+
+function nearDoorArea(rm, x, y, pad = 18) {
+  if (!rm) return false;
+  return rm.doors.some(d => {
+    if (!isDoorVisible(d)) return false;
+    const z = doorZone(d, rm);
+    return x > z.x - pad && x < z.x + z.w + pad && y > z.y - pad && y < z.y + z.h + pad;
+  });
+}
+
+function pickRoomPoint(rm, xBase, yBase, xSeed, ySeed, xPad, yPad) {
+  const spanX = PLAY_R - PLAY_L - xPad * 2;
+  const spanY = PLAY_B - PLAY_T - yPad * 2;
+  let fallback = {x: GW / 2, y: (PLAY_T + PLAY_B) / 2};
+  for (let i = 0; i < 6; i++) {
+    const x = PLAY_L + xPad + noise2d(rm.num, xBase + i * 17, xSeed) * spanX;
+    const y = PLAY_T + yPad + noise2d(rm.num, yBase + i * 19, ySeed) * spanY;
+    fallback = {x, y};
+    if (!nearDoorArea(rm, x, y, 22)) return fallback;
+  }
+  return fallback;
+}
+
+function getTrapPositions(rm) {
+  const count = 2 + Math.floor(noise2d(rm.num, 2, 999) * 3);
+  const traps = [];
+  for (let i = 0; i < count; i++) {
+    const pos = pickRoomPoint(rm, i + 10, i + 20, 1234, 5678, 20, 15);
+    traps.push({x: pos.x, y: pos.y, triggered: false});
+  }
+  return traps;
+}
+
+function wrapNpcText(text, maxChars = 30) {
+  const out = [];
+  text.split('\n').forEach(rawLine => {
+    const words = rawLine.split(' ');
+    let line = '';
+    words.forEach(word => {
+      const next = line ? line + ' ' + word : word;
+      if (line && next.length > maxChars) {
+        out.push(line);
+        line = word;
+      } else {
+        line = next;
+      }
+    });
+    out.push(line || '');
+  });
+  return out;
+}
+
+function getRoomNPC(rm) {
+  if (roomSkipsFeatures(rm) || noise2d(rm.num, 5, 3333) >= 0.25) return null;
+  const pos = pickRoomPoint(rm, 30, 40, 7777, 8888, 28, 22);
+  const spriteRoll = noise2d(rm.num, 6, 4444);
+  const sprite = spriteRoll < 0.4 ? 'hooded' : spriteRoll < 0.7 ? 'skeleton' : 'ghost';
+  const truthful = noise2d(rm.num, 8, 6666) < 0.10;
+  const pool = truthful ? NPC_TRUTHS : NPC_LIES;
+  const dialogue = pool[Math.floor(noise2d(rm.num, 7, 5555) * pool.length) % pool.length];
+  return {x: pos.x, y: pos.y, sprite, dialogue, truthful, lines: wrapNpcText(dialogue)};
+}
+
+function clearRoomFeatures() {
+  S.vx = 0; S.vy = 0;
+  S.roomHazard = null;
+  S.roomTraps = [];
+  S.windDir = null;
+  S.npcData = null;
+  S.npcBubbleAlpha = 0;
+}
+
+function refreshRoomFeatures() {
+  clearRoomFeatures();
+  const rm = curRoom();
+  S.roomHazard = getRoomHazard(rm);
+  if (S.roomHazard === 'trap') S.roomTraps = getTrapPositions(rm);
+  if (S.roomHazard === 'wind') S.windDir = getWindDir(rm);
+  S.npcData = getRoomNPC(rm);
+}
 
 function getTorchPositions(roomType = curRoom().type) {
   if (!['stone-hall', 'library', 'living-room', 'dungeon'].includes(roomType)) return [];
@@ -1653,6 +1841,40 @@ function spawnSplashParticles(x) {
       color: '#9cb6be',
     });
   }
+}
+
+function spawnIceParticle() {
+  const life = 40 + Math.random() * 30;
+  spawnParticle({
+    kind: 'ice',
+    x: PLAY_L + 8 + Math.random() * (PLAY_R - PLAY_L - 16),
+    y: PLAY_T + 8 + Math.random() * (PLAY_B - PLAY_T - 16),
+    vx: (Math.random() - 0.5) * 0.05,
+    vy: -0.03 - Math.random() * 0.04,
+    life, maxLife: life,
+    size: 1 + (Math.random() > 0.8 ? 1 : 0),
+    alpha: 0.2 + Math.random() * 0.15,
+    color: Math.random() > 0.5 ? '#f3fbff' : '#d7ecff',
+  });
+}
+
+function spawnWindParticle() {
+  const wind = S.windDir || {x: 0.3, y: 0};
+  const horizontal = Math.abs(wind.x) > Math.abs(wind.y);
+  const startX = wind.x < 0 ? PLAY_R + 4 : wind.x > 0 ? PLAY_L - 4 : PLAY_L + Math.random() * (PLAY_R - PLAY_L);
+  const startY = wind.y < 0 ? PLAY_B + 4 : wind.y > 0 ? PLAY_T - 4 : PLAY_T + Math.random() * (PLAY_B - PLAY_T);
+  const life = 10 + Math.random() * 10;
+  spawnParticle({
+    kind: 'wind',
+    x: horizontal ? startX : startX + (Math.random() - 0.5) * 8,
+    y: horizontal ? PLAY_T + 6 + Math.random() * (PLAY_B - PLAY_T - 12) : startY,
+    vx: wind.x * (2.8 + Math.random() * 0.8) + (horizontal ? 0 : (Math.random() - 0.5) * 0.08),
+    vy: wind.y * (2.8 + Math.random() * 0.8) + (horizontal ? (Math.random() - 0.5) * 0.08 : 0),
+    life, maxLife: life,
+    size: Math.random() > 0.7 ? 2 : 1,
+    alpha: 0.18 + Math.random() * 0.12,
+    color: '#d7dde0',
+  });
 }
 
 function spawnTitleDustParticle() {
@@ -1817,6 +2039,10 @@ function updateParticles() {
 
     if (p.kind === 'dust') {
       p.vx = Math.max(-0.08, Math.min(0.08, p.vx + Math.sin(S.time * 1.5 + p.y * 0.03) * 0.0015));
+      if (S.roomHazard === 'wind' && S.windDir) {
+        p.vx += S.windDir.x * 0.01;
+        p.vy += S.windDir.y * 0.01;
+      }
     } else if (p.kind === 'ember') {
       p.vx *= 0.99;
       p.vy -= 0.002;
@@ -1829,6 +2055,12 @@ function updateParticles() {
     } else if (p.kind === 'splash') {
       p.vy += 0.02;
       p.vx *= 0.94;
+    } else if (p.kind === 'ice') {
+      p.vx *= 0.99;
+      p.vy *= 0.98;
+    } else if (p.kind === 'wind') {
+      p.vx *= 0.99;
+      p.vy *= 0.99;
     }
 
     if (p.life > 0 && p.x > PLAY_L - 6 && p.x < PLAY_R + 6 && p.y > PLAY_T - 12 && p.y < PLAY_B + 6) next.push(p);
@@ -1864,6 +2096,17 @@ function updateParticles() {
   } else {
     S.particleEmberTimer = 8;
   }
+
+  if (S.roomHazard === 'ice') {
+    let iceCount = S.particles.filter(p => p.kind === 'ice').length;
+    while (iceCount < 10) {
+      spawnIceParticle();
+      iceCount++;
+    }
+  } else if (S.roomHazard === 'wind' && S.windDir) {
+    spawnWindParticle();
+    if (Math.random() > 0.4) spawnWindParticle();
+  }
 }
 
 function tickFootsteps() {
@@ -1886,6 +2129,46 @@ function inDoorLane(wall, px, py, room) {
     else { if (py > z.y+2 && py < z.y+z.h-2) return true; }
   }
   return false;
+}
+
+function triggerTrap(trap, moveX, moveY) {
+  trap.triggered = true;
+  const dirVec = {left:{x:1,y:0}, right:{x:-1,y:0}, up:{x:0,y:1}, down:{x:0,y:-1}}[S.dir] || {x:0,y:-1};
+  const dx = S.px - trap.x;
+  const dy = S.py - trap.y;
+  const mag = Math.hypot(dx, dy) || Math.hypot(moveX, moveY) || 1;
+  S.knockX = (dx || moveX || dirVec.x) / mag * 14;
+  S.knockY = (dy || moveY || dirVec.y) / mag * 14;
+  S.flash = 0.9;
+  S.blocked = 0.7;
+  S.footstepTimer = 0;
+  S.vx = 0; S.vy = 0;
+  S.walkTarget = null; S.walkCallback = null;
+  sfxBlocked();
+  if (mapConfig.moveLimit) {
+    S.steps++;
+    updateStepDisplay();
+  }
+}
+
+function checkTrapTrigger(rm, moveX, moveY) {
+  if (!rm || S.roomHazard !== 'trap') return false;
+  for (const trap of S.roomTraps) {
+    if (trap.triggered) continue;
+    if (Math.hypot(S.px - trap.x, S.py - trap.y) < 6) {
+      triggerTrap(trap, moveX, moveY);
+      return true;
+    }
+  }
+  return false;
+}
+
+function updateNpcBubble() {
+  const npc = S.npcData;
+  const near = npc && Math.hypot(S.px - npc.x, S.py - npc.y) < 24;
+  const step = 1 / 18;
+  if (near) S.npcBubbleAlpha = Math.min(1, S.npcBubbleAlpha + step);
+  else S.npcBubbleAlpha = Math.max(0, S.npcBubbleAlpha - step);
 }
 
 // ═══════════════════════════════════════════════
@@ -1939,18 +2222,30 @@ function update() {
       S.footstepTimer = 0;
       const cb = S.walkCallback;
       S.walkTarget = null; S.walkCallback = null;
+      if (checkTrapTrigger(rm0, 0, 0)) {
+        updateNpcBubble();
+        return;
+      }
+      updateNpcBubble();
       if (cb) cb();
       return;
     }
     const spd = 2;
-    S.px += (dx2 / dist) * spd;
-    S.py += (dy2 / dist) * spd;
+    const mx = (dx2 / dist) * spd;
+    const my = (dy2 / dist) * spd;
+    S.px += mx;
+    S.py += my;
     // Set facing direction
     if (Math.abs(dx2) > Math.abs(dy2)) S.dir = dx2 > 0 ? 'right' : 'left';
     else S.dir = dy2 > 0 ? 'down' : 'up';
     S.moving = true;
     S.aTimer++; if (S.aTimer >= 8) { S.aTimer = 0; S.aFrame = (S.aFrame + 1) % 2; }
     tickFootsteps();
+    if (checkTrapTrigger(rm0, mx, my)) {
+      updateNpcBubble();
+      return;
+    }
+    updateNpcBubble();
     return; // don't process manual input while auto-walking
   }
 
@@ -2011,27 +2306,62 @@ function update() {
     }
   }
 
-  let dx=0, dy=0;
-  if (S.keys['ArrowLeft']||S.keys['a'])  { dx=-SPEED; S.dir='left'; }
-  if (S.keys['ArrowRight']||S.keys['d']) { dx=+SPEED; S.dir='right'; }
-  if (S.keys['ArrowUp']||S.keys['w'])    { dy=-SPEED; S.dir='up'; }
-  if (S.keys['ArrowDown']||S.keys['s'])  { dy=+SPEED; S.dir='down'; }
-  S.moving = dx!==0||dy!==0;
+  let inputX=0, inputY=0;
+  if (S.keys['ArrowLeft']||S.keys['a'])  { inputX=-1; S.dir='left'; }
+  if (S.keys['ArrowRight']||S.keys['d']) { inputX=+1; S.dir='right'; }
+  if (S.keys['ArrowUp']||S.keys['w'])    { inputY=-1; S.dir='up'; }
+  if (S.keys['ArrowDown']||S.keys['s'])  { inputY=+1; S.dir='down'; }
+  if (inputX!==0 && inputY!==0) { inputX*=.707; inputY*=.707; }
 
-  if (S.moving) {
-    if (dx!==0 && dy!==0) { dx*=.707; dy*=.707; }
-    let nx=S.px+dx, ny=S.py+dy;
-    const rm=curRoom(), hw=4, hh=2;
+  const rm=curRoom(), hw=4, hh=2;
+  const oldX = S.px, oldY = S.py;
+  let nx=S.px, ny=S.py;
 
-    // Clamp to walls unless door is present
+  if (S.roomHazard === 'ice') {
+    if (inputX !== 0 || inputY !== 0) {
+      S.vx += inputX * 0.15;
+      S.vy += inputY * 0.15;
+    }
+    const maxV = SPEED * 1.2;
+    S.vx = Math.max(-maxV, Math.min(maxV, S.vx));
+    S.vy = Math.max(-maxV, Math.min(maxV, S.vy));
+    nx = S.px + S.vx;
+    ny = S.py + S.vy;
+    S.vx *= 0.92; S.vy *= 0.92;
+    if (Math.abs(S.vx) < 0.05) S.vx = 0;
+    if (Math.abs(S.vy) < 0.05) S.vy = 0;
+  } else {
+    let moveX = inputX * SPEED;
+    let moveY = inputY * SPEED;
+    if (S.roomHazard === 'wind' && S.windDir) {
+      moveX += S.windDir.x;
+      moveY += S.windDir.y;
+      if (inputX === 0 && inputY === 0) {
+        if (Math.abs(S.windDir.x) > Math.abs(S.windDir.y)) S.dir = S.windDir.x > 0 ? 'right' : 'left';
+        else S.dir = S.windDir.y > 0 ? 'down' : 'up';
+      }
+    }
+    nx = S.px + moveX;
+    ny = S.py + moveY;
+  }
+
+  const attemptedMove = Math.abs(nx - oldX) > 0.001 || Math.abs(ny - oldY) > 0.001;
+  if (attemptedMove) {
     if (nx-hw<PLAY_L && !inDoorLane('left',nx,ny,rm))   nx=PLAY_L+hw;
     if (nx+hw>PLAY_R && !inDoorLane('right',nx,ny,rm))  nx=PLAY_R-hw;
     if (ny-hh<PLAY_T && !inDoorLane('top',nx,ny,rm))    ny=PLAY_T+hh;
     if (ny+hh>PLAY_B && !inDoorLane('bottom',nx,ny,rm)) ny=PLAY_B-hh;
 
     S.px=nx; S.py=ny;
+    const moveX = S.px - oldX;
+    const moveY = S.py - oldY;
+    S.moving = Math.abs(moveX) > 0.01 || Math.abs(moveY) > 0.01 || S.vx !== 0 || S.vy !== 0;
 
-    // Door triggers
+    if (checkTrapTrigger(rm, moveX, moveY)) {
+      updateNpcBubble();
+      return;
+    }
+
     for (const d of rm.doors) {
       if (!isDoorVisible(d)) continue;
       const z=doorZone(d, rm); let hit=false;
@@ -2044,27 +2374,31 @@ function update() {
       if (hit) {
         if (isDoorLocked(d)) {
           if (S.keyCount > 0) {
-            // Master key — doesn't get consumed
             S.openedDoors[doorPair(S.room, d.target)] = true;
             sfxUnlock();
           } else {
             S.blocked = 1;
             S.flash = 1;
             S.footstepTimer = 0;
+            S.vx = 0; S.vy = 0;
             sfxBlocked();
-            const KB = 18; // knockback distance
+            const KB = 18;
             switch(d.wall) {
               case 'top':    S.py=PLAY_T+4; S.knockX=0; S.knockY=KB; break;
               case 'bottom': S.py=PLAY_B-4; S.knockX=0; S.knockY=-KB; break;
               case 'left':   S.px=PLAY_L+4; S.knockX=KB; S.knockY=0; break;
               case 'right':  S.px=PLAY_R-4; S.knockX=-KB; S.knockY=0; break;
             }
+            updateNpcBubble();
             return;
           }
         }
-        startTrans(d.target, d.wall); return;
+        startTrans(d.target, d.wall);
+        return;
       }
     }
+  } else {
+    S.moving = false;
   }
 
   // Walk animation
@@ -2074,6 +2408,7 @@ function update() {
   } else {
     S.aFrame=0; S.aTimer=0; S.footstepTimer=0;
   }
+  updateNpcBubble();
 }
 
 function startTrans(targetId, exitWall, playDoorCreak=true) {
@@ -2118,6 +2453,7 @@ function updateTrans() {
       updateBreadcrumbs();
       const sp=spawnPos(OPP[S.nextWall]);
       S.px=sp.x; S.py=sp.y; S.dir=sp.dir;
+      refreshRoomFeatures();
       S.tPhase='in'; updateUI();
       if (audioCtx) { shiftDrone(curRoom().type); }
       // Check for death room or soft-lock
@@ -2188,6 +2524,7 @@ function updateIntro() {
         S.room = mapConfig.startRoom || 'room-1';
         S.px=GW/2; S.py=(PLAY_T+PLAY_B)/2+10;
         S.dir='down'; S.aFrame=0; S.aTimer=0;
+        refreshRoomFeatures();
         updateUI();
         if (audioCtx) { startRoomMusic(); shiftDrone('stone-hall'); }
       }
@@ -2295,12 +2632,14 @@ function render() {
     ctx.translate(Math.round((Math.random() - 0.5) * 6), Math.round((Math.random() - 0.5) * 6));
   }
   drawFloor(th);
+  drawHazardFloor(rm);
   drawFootprints(rm);
   drawFloorNum(rm, th);
   drawKeys(rm);
   drawDecor(th);
   drawTable(rm);
   drawPortals(rm);
+  drawNPC();
   drawWalls(rm, th);
   drawTorches();
   drawWallText(rm);
@@ -2311,6 +2650,8 @@ function render() {
   drawVignette();
   drawKeyUI();
   drawMoveCounter();
+  drawHazardIndicator();
+  drawNpcBubble();
   drawFade();
   drawDeath();
   drawWin();
@@ -2320,6 +2661,36 @@ function render() {
 function drawFloor(th, roomType = curRoom().type) {
   const tex = getThemeTextures(roomType, th);
   ctx.drawImage(tex.floor, PLAY_L, PLAY_T);
+}
+
+function drawHazardFloor(rm) {
+  if (S.roomHazard === 'ice') {
+    ctx.save();
+    ctx.fillStyle = 'rgba(180,210,240,0.08)';
+    ctx.fillRect(PLAY_L, PLAY_T, PLAY_R - PLAY_L, PLAY_B - PLAY_T);
+    ctx.restore();
+    return;
+  }
+  if (S.roomHazard !== 'trap') return;
+  ctx.save();
+  for (const trap of S.roomTraps) {
+    const tx = Math.round(trap.x - 6);
+    const ty = Math.round(trap.y - 6);
+    ctx.fillStyle = trap.triggered ? 'rgba(110,50,44,0.4)' : 'rgba(120,62,54,0.24)';
+    ctx.fillRect(tx, ty, 12, 12);
+    ctx.fillStyle = 'rgba(60,28,24,0.5)';
+    ctx.fillRect(tx, ty + 11, 12, 1);
+    ctx.strokeStyle = trap.triggered ? 'rgba(255,180,150,0.4)' : 'rgba(70,32,28,0.55)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(tx + 2, ty + 2); ctx.lineTo(tx + 10, ty + 10);
+    ctx.moveTo(tx + 10, ty + 2); ctx.lineTo(tx + 2, ty + 10);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(tx + 6, ty + 1); ctx.lineTo(tx + 5, ty + 4); ctx.lineTo(tx + 7, ty + 7);
+    ctx.stroke();
+  }
+  ctx.restore();
 }
 
 function drawFootprintMark(x, y, vertical) {
@@ -2758,6 +3129,67 @@ function drawMoveCounter() {
   ctx.fillRect(tx - 3, ty - 2, tw + 6, 11);
   const color = left <= 3 ? '#ff4a32' : '#d4c8a0';
   drawDigits(ctx, fullStr, tx, ty, scale, color);
+}
+
+function drawHazardIndicator() {
+  if (!S.roomHazard || !HAZARD_INFO[S.roomHazard]) return;
+  const info = HAZARD_INFO[S.roomHazard];
+  const scale = 1;
+  const tw = measureDigits(info.label, scale);
+  ctx.save();
+  ctx.globalAlpha = 0.5;
+  ctx.fillStyle = 'rgba(0,0,0,0.35)';
+  ctx.fillRect(GW - tw - 10, 4, tw + 6, 9);
+  drawDigits(ctx, info.label, GW - tw - 7, 5, scale, info.color);
+  ctx.restore();
+}
+
+function drawNPC() {
+  const npc = S.npcData;
+  if (!npc) return;
+  const img = npcSprites[npc.sprite];
+  if (!img) return;
+  const bob = Math.round(Math.sin(S.time * 2 + curRoom().num) * 1);
+  const x = Math.floor(npc.x - img.width / 2);
+  const y = Math.floor(npc.y - img.height + 4 + bob);
+  ctx.save();
+  ctx.globalAlpha = npc.sprite === 'ghost' ? 0.55 + Math.sin(S.time * 3) * 0.08 : 1;
+  ctx.fillStyle = npc.sprite === 'ghost' ? 'rgba(120,140,170,0.12)' : 'rgba(0,0,0,0.18)';
+  ctx.beginPath();
+  ctx.ellipse(Math.floor(npc.x), Math.floor(npc.y) + 2, 5, 2, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.drawImage(img, x, y);
+  ctx.restore();
+}
+
+function drawNpcBubble() {
+  const npc = S.npcData;
+  if (!npc || S.npcBubbleAlpha <= 0.01) return;
+  const scale = 1;
+  const lineH = 9;
+  const pad = 4;
+  const bubbleW = Math.max(...npc.lines.map(line => measureDigits(line, scale))) + pad * 2;
+  const bubbleH = npc.lines.length * lineH + pad * 2 - 2;
+  const bx = Math.max(PLAY_L + 2, Math.min(PLAY_R - bubbleW - 2, Math.round(npc.x - bubbleW / 2)));
+  const by = Math.max(PLAY_T + 2, Math.round(npc.y - 28 - bubbleH));
+  ctx.save();
+  ctx.globalAlpha = S.npcBubbleAlpha;
+  ctx.fillStyle = 'rgba(10,10,14,0.9)';
+  ctx.fillRect(bx, by, bubbleW, bubbleH);
+  ctx.fillStyle = 'rgba(10,10,14,0.9)';
+  ctx.beginPath();
+  ctx.moveTo(Math.round(npc.x) - 3, by + bubbleH);
+  ctx.lineTo(Math.round(npc.x) + 3, by + bubbleH);
+  ctx.lineTo(Math.round(npc.x), by + bubbleH + 4);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = npc.truthful ? 'rgba(180,220,255,0.5)' : 'rgba(180,150,130,0.45)';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(bx + 0.5, by + 0.5, bubbleW - 1, bubbleH - 1);
+  npc.lines.forEach((line, i) => {
+    drawDigits(ctx, line, bx + pad, by + pad + i * lineH, scale, '#efe4d2');
+  });
+  ctx.restore();
 }
 
 function drawChar() {
