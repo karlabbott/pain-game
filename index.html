@@ -188,29 +188,29 @@ function drawDigits(ctx, numStr, x, y, scale, color) {
         }
       }
     }
-
-    function measureDigits(text, scale) {
-      if (!text.length) return 0;
-      return text.length * (5 * scale + scale) - scale;
-    }
-
-    function drawCenteredDigits(text, y, scale, color, alpha = 1) {
-      const x = Math.floor((GW - measureDigits(text, scale)) / 2);
-      ctx.save();
-      ctx.globalAlpha = alpha;
-      drawDigits(ctx, text, x, y, scale, color);
-      ctx.restore();
-    }
-
-    function drawRotatedDigits(text, x, y, scale, color, angle, alpha = 1) {
-      ctx.save();
-      ctx.translate(Math.floor(x), Math.floor(y));
-      ctx.rotate(angle);
-      ctx.globalAlpha = alpha;
-      drawDigits(ctx, text.toUpperCase(), 0, 0, scale, color);
-      ctx.restore();
-    }
   }
+}
+
+function measureDigits(text, scale) {
+  if (!text.length) return 0;
+  return text.length * (5 * scale + scale) - scale;
+}
+
+function drawCenteredDigits(text, y, scale, color, alpha = 1) {
+  const x = Math.floor((GW - measureDigits(text, scale)) / 2);
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  drawDigits(ctx, text, x, y, scale, color);
+  ctx.restore();
+}
+
+function drawRotatedDigits(text, x, y, scale, color, angle, alpha = 1) {
+  ctx.save();
+  ctx.translate(Math.floor(x), Math.floor(y));
+  ctx.rotate(angle);
+  ctx.globalAlpha = alpha;
+  drawDigits(ctx, text.toUpperCase(), 0, 0, scale, color);
+  ctx.restore();
 }
 
 // ═══════════════════════════════════════════════
